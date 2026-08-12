@@ -282,6 +282,32 @@ button:disabled,
   text-decoration: none;
 }
 
+.entity-form {
+  display: grid;
+  gap: 14px;
+}
+
+.checkbox-field {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+}
+
+.form-actions,
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.row-actions .base-button,
+.page-header .base-button,
+.form-actions .base-button {
+  width: auto;
+  margin-top: 0;
+}
+
 .base-alert {
   padding: 12px 14px;
   border: 1px solid var(--color-border);

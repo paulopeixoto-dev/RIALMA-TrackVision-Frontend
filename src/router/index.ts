@@ -7,9 +7,9 @@ import NotFoundPage from '@/pages/NotFoundPage.vue'
 import PermissionsPage from '@/pages/PermissionsPage.vue'
 import RolesPage from '@/pages/RolesPage.vue'
 import UsersPage from '@/pages/UsersPage.vue'
+import VehiclesPage from '@/pages/VehiclesPage.vue'
 import { useAuthStore } from '@/stores/authStore'
 
-const vehiclesRoute = { template: '<section><h1>Veiculos</h1></section>' }
 const locationsRoute = { template: '<section><h1>Locais</h1></section>' }
 const edgeNodesRoute = { template: '<section><h1>Edge Nodes</h1></section>' }
 const camerasRoute = { template: '<section><h1>Cameras</h1></section>' }
@@ -59,7 +59,7 @@ export function createAppRouter() {
           {
             path: 'vehicles',
             name: 'vehicles',
-            component: vehiclesRoute,
+            component: VehiclesPage,
             meta: { permission: 'vehicles.manage' },
           },
           {
