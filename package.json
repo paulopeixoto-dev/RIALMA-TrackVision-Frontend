@@ -1,0 +1,38 @@
+{
+  "name": "rialma-trackvision-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "lint": "eslint .",
+    "type-check": "vue-tsc --noEmit",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "lucide-vue-next": "latest",
+    "pinia": "latest",
+    "vue": "latest",
+    "vue-router": "latest"
+  },
+  "devDependencies": {
+    "@playwright/test": "latest",
+    "@tsconfig/node24": "latest",
+    "@types/node": "latest",
+    "@vitejs/plugin-vue": "latest",
+    "@vue/eslint-config-typescript": "latest",
+    "@vue/tsconfig": "latest",
+    "@vue/test-utils": "latest",
+    "eslint": "latest",
+    "eslint-plugin-vue": "latest",
+    "jsdom": "latest",
+    "typescript": "latest",
+    "typescript-eslint": "latest",
+    "vite": "latest",
+    "vitest": "latest",
+    "vue-tsc": "latest"
+  }
+}
