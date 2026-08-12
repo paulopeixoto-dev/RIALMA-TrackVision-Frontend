@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
 import DashboardPage from '@/pages/DashboardPage.vue'
+import EdgeNodesPage from '@/pages/EdgeNodesPage.vue'
 import ForbiddenPage from '@/pages/ForbiddenPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
+import LocationsPage from '@/pages/LocationsPage.vue'
 import NotFoundPage from '@/pages/NotFoundPage.vue'
 import PermissionsPage from '@/pages/PermissionsPage.vue'
 import RolesPage from '@/pages/RolesPage.vue'
@@ -10,8 +12,6 @@ import UsersPage from '@/pages/UsersPage.vue'
 import VehiclesPage from '@/pages/VehiclesPage.vue'
 import { useAuthStore } from '@/stores/authStore'
 
-const locationsRoute = { template: '<section><h1>Locais</h1></section>' }
-const edgeNodesRoute = { template: '<section><h1>Edge Nodes</h1></section>' }
 const camerasRoute = { template: '<section><h1>Cameras</h1></section>' }
 const cameraPairsRoute = { template: '<section><h1>Pares de Cameras</h1></section>' }
 
@@ -65,13 +65,13 @@ export function createAppRouter() {
           {
             path: 'locations',
             name: 'locations',
-            component: locationsRoute,
+            component: LocationsPage,
             meta: { permission: 'cameras.manage' },
           },
           {
             path: 'edge-nodes',
             name: 'edge-nodes',
-            component: edgeNodesRoute,
+            component: EdgeNodesPage,
             meta: { permission: 'cameras.manage' },
           },
           {
