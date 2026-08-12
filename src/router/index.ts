@@ -1,19 +1,19 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
+import DashboardPage from '@/pages/DashboardPage.vue'
+import ForbiddenPage from '@/pages/ForbiddenPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
+import NotFoundPage from '@/pages/NotFoundPage.vue'
+import PermissionsPage from '@/pages/PermissionsPage.vue'
+import RolesPage from '@/pages/RolesPage.vue'
+import UsersPage from '@/pages/UsersPage.vue'
 import { useAuthStore } from '@/stores/authStore'
 
-const dashboardRoute = { template: '<section><h1>Dashboard</h1></section>' }
-const usersRoute = { template: '<section><h1>Usuarios</h1></section>' }
-const rolesRoute = { template: '<section><h1>Roles</h1></section>' }
-const permissionsRoute = { template: '<section><h1>Permissoes</h1></section>' }
 const vehiclesRoute = { template: '<section><h1>Veiculos</h1></section>' }
 const locationsRoute = { template: '<section><h1>Locais</h1></section>' }
 const edgeNodesRoute = { template: '<section><h1>Edge Nodes</h1></section>' }
 const camerasRoute = { template: '<section><h1>Cameras</h1></section>' }
 const cameraPairsRoute = { template: '<section><h1>Pares de Cameras</h1></section>' }
-const forbiddenRoute = { template: '<main><h1>Acesso negado</h1></main>' }
-const notFoundRoute = { template: '<main><h1>Pagina nao encontrada</h1></main>' }
 
 export function createAppRouter() {
   const router = createRouter({
@@ -36,24 +36,24 @@ export function createAppRouter() {
           {
             path: 'dashboard',
             name: 'dashboard',
-            component: dashboardRoute,
+            component: DashboardPage,
           },
           {
             path: 'users',
             name: 'users',
-            component: usersRoute,
+            component: UsersPage,
             meta: { permission: 'users.manage' },
           },
           {
             path: 'roles',
             name: 'roles',
-            component: rolesRoute,
+            component: RolesPage,
             meta: { permission: 'permissions.manage' },
           },
           {
             path: 'permissions',
             name: 'permissions',
-            component: permissionsRoute,
+            component: PermissionsPage,
             meta: { permission: 'permissions.manage' },
           },
           {
@@ -91,12 +91,12 @@ export function createAppRouter() {
       {
         path: '/forbidden',
         name: 'forbidden',
-        component: forbiddenRoute,
+        component: ForbiddenPage,
       },
       {
         path: '/:pathMatch(.*)*',
         name: 'not-found',
-        component: notFoundRoute,
+        component: NotFoundPage,
       },
     ],
   })

@@ -6,10 +6,23 @@ export interface BaseTableColumn {
 
 defineProps<{
   columns: BaseTableColumn[]
-  rows: Record<string, unknown>[]
+  rows: unknown[]
   loading?: boolean
   emptyText?: string
 }>()
+
+function asRecord(row: unknown): Record<string, unknown> {
+  return typeof row === 'object' && row !== null ? (row as Record<string, unknown>) : {}
+}
+
+function rowKey(row: unknown, index: number): string {
+  const record = asRecord(row)
+  return String(record.id ?? record.uuid ?? index)
+}
+
+function cellValue(row: unknown, key: string): unknown {
+  return asRecord(row)[key]
+}
 </script>
 
 <template>
@@ -36,23 +49,24 @@ defineProps<{
             {{ emptyText ?? 'Nenhum registro encontrado.' }}
           </td>
         </tr>
-        <tr
-          v-for="row in rows"
-          v-else
-          :key="String(row.id ?? row.uuid)"
-        >
-          <slot
-            name="row"
-            :row="row"
+        <template v-else>
+          <tr
+            v-for="(row, index) in rows"
+            :key="rowKey(row, index)"
           >
-            <td
-              v-for="column in columns"
-              :key="column.key"
+            <slot
+              name="row"
+              :row="row"
             >
-              {{ row[column.key] }}
-            </td>
-          </slot>
-        </tr>
+              <td
+                v-for="column in columns"
+                :key="column.key"
+              >
+                {{ cellValue(row, column.key) }}
+              </td>
+            </slot>
+          </tr>
+        </template>
       </tbody>
     </table>
   </div>
