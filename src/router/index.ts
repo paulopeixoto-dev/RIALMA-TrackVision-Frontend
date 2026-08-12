@@ -1,5 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import AdminLayout from '@/layouts/AdminLayout.vue'
+import CameraPairsPage from '@/pages/CameraPairsPage.vue'
+import CamerasPage from '@/pages/CamerasPage.vue'
 import DashboardPage from '@/pages/DashboardPage.vue'
 import EdgeNodesPage from '@/pages/EdgeNodesPage.vue'
 import ForbiddenPage from '@/pages/ForbiddenPage.vue'
@@ -11,9 +13,6 @@ import RolesPage from '@/pages/RolesPage.vue'
 import UsersPage from '@/pages/UsersPage.vue'
 import VehiclesPage from '@/pages/VehiclesPage.vue'
 import { useAuthStore } from '@/stores/authStore'
-
-const camerasRoute = { template: '<section><h1>Cameras</h1></section>' }
-const cameraPairsRoute = { template: '<section><h1>Pares de Cameras</h1></section>' }
 
 export function createAppRouter() {
   const router = createRouter({
@@ -77,13 +76,13 @@ export function createAppRouter() {
           {
             path: 'cameras',
             name: 'cameras',
-            component: camerasRoute,
+            component: CamerasPage,
             meta: { permission: 'cameras.manage' },
           },
           {
             path: 'camera-pairs',
             name: 'camera-pairs',
-            component: cameraPairsRoute,
+            component: CameraPairsPage,
             meta: { permission: 'cameras.manage' },
           },
         ],
