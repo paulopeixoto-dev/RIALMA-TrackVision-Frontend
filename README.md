@@ -1,7 +1,48 @@
 # RIALMA TrackVision Frontend
 
-Frontend do projeto RIALMA TrackVision.
+Vue 3 administrative frontend for TrackVision.
 
-## Autor
+## Stack
 
-Paulo Peixoto <paulo_henrique500@hotmail.com>
+- Vue 3
+- Vite
+- TypeScript
+- Vue Router
+- Pinia
+- Vitest
+- Playwright
+
+## Environment
+
+Copy `.env.example` to `.env.local` and point the frontend to the Laravel API:
+
+```env
+VITE_API_BASE_URL=http://localhost:8000/api/v1
+```
+
+Do not put secrets in frontend environment variables.
+
+## Local Commands
+
+```bash
+npm install
+npm run dev
+```
+
+## Verification
+
+```bash
+npm run lint
+npm run test
+npm run build
+npm run e2e
+```
+
+## Current Scope
+
+This phase includes login, authenticated admin layout, permission-aware navigation,
+read-only users/roles/permissions, and CRUD screens for vehicles, locations, edge
+nodes, cameras, and camera pairs.
+
+Users, roles, and permissions are read-only because the backend currently exposes
+only list endpoints for these resources.
