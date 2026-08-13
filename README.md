@@ -52,3 +52,11 @@ only list endpoints for these resources.
 A rota `/trips` e a tela operacional de revisao de carga. Ela exige `captures.view` para abrir e exibe as acoes `loaded`, `empty` e `needs_review` apenas quando as permissoes efetivas incluem `trips.manage`.
 
 Midias privadas sao buscadas pela API com o token Bearer e renderizadas como `Object URL` temporaria. Tokens nunca sao adicionados a URLs de midia.
+
+### Trip Reports And Audit Timeline
+
+The `/trips` screen shows CSV/PDF export buttons when the user has `reports.view`.
+
+Report downloads use the current filters and send the Bearer token through the Authorization header. Tokens are never appended to report URLs.
+
+Trip event details show the load-status audit timeline returned by the backend.
