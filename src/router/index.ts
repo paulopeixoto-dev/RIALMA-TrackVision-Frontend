@@ -10,6 +10,7 @@ import LocationsPage from '@/pages/LocationsPage.vue'
 import NotFoundPage from '@/pages/NotFoundPage.vue'
 import PermissionsPage from '@/pages/PermissionsPage.vue'
 import RolesPage from '@/pages/RolesPage.vue'
+import TripsPage from '@/pages/TripsPage.vue'
 import UsersPage from '@/pages/UsersPage.vue'
 import VehiclesPage from '@/pages/VehiclesPage.vue'
 import { useAuthStore } from '@/stores/authStore'
@@ -60,6 +61,12 @@ export function createAppRouter() {
             name: 'vehicles',
             component: VehiclesPage,
             meta: { permission: 'vehicles.manage' },
+          },
+          {
+            path: 'trips',
+            name: 'trips',
+            component: TripsPage,
+            meta: { permission: 'captures.view' },
           },
           {
             path: 'locations',

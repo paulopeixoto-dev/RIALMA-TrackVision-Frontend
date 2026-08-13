@@ -12,7 +12,7 @@ describe('TheSidebar', () => {
 
   it('shows only navigation items allowed by effective permissions', async () => {
     const authStore = useAuthStore()
-    authStore.permissions = ['vehicles.manage']
+    authStore.permissions = ['captures.view']
 
     const router = createRouter({
       history: createWebHistory(),
@@ -20,6 +20,7 @@ describe('TheSidebar', () => {
         { path: '/', redirect: '/dashboard' },
         { path: '/dashboard', name: 'dashboard', component: { template: '<div />' } },
         { path: '/vehicles', name: 'vehicles', component: { template: '<div />' } },
+        { path: '/trips', name: 'trips', component: { template: '<div />' } },
       ],
     })
 
@@ -29,7 +30,7 @@ describe('TheSidebar', () => {
       },
     })
 
-    expect(wrapper.text()).toContain('Veiculos')
-    expect(wrapper.text()).not.toContain('Cameras')
+    expect(wrapper.text()).toContain('Viagens')
+    expect(wrapper.text()).not.toContain('Veiculos')
   })
 })

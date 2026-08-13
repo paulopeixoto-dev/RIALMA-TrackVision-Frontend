@@ -44,4 +44,18 @@ describe('router guards', () => {
 
     expect(router.currentRoute.value.name).toBe('forbidden')
   })
+
+  it('allows authenticated users with captures view to access trips', async () => {
+    const store = useAuthStore()
+    store.token = 'token-123'
+    store.user = { id: 1, name: 'Paulo', email: 'paulo@example.com' }
+    store.permissions = ['captures.view']
+
+    const router = createAppRouter()
+
+    await router.push('/trips')
+    await router.isReady()
+
+    expect(router.currentRoute.value.name).toBe('trips')
+  })
 })

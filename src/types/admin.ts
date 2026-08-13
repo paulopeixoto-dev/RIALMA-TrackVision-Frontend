@@ -99,3 +99,60 @@ export interface CameraPairInput {
   direction: 'outbound' | 'inbound' | 'unknown'
   is_active: boolean
 }
+
+export type TripStatus = 'open' | 'closed' | 'needs_review'
+export type TripEventDirection = 'outbound' | 'inbound' | 'unknown'
+export type LoadStatus = 'unknown' | 'loaded' | 'empty' | 'needs_review'
+
+export interface TripMediaAsset {
+  id: number
+  uuid: string
+  kind: 'lpr_image' | 'support_image'
+  content_type: string
+  byte_size: number
+  content_endpoint: string
+}
+
+export interface TripEvent {
+  id: number
+  uuid: string
+  direction: TripEventDirection
+  load_status: LoadStatus
+  occurred_at: string | null
+  capture: {
+    id: number
+    uuid: string
+    plate: string | null
+    plate_normalized: string | null
+    event_time: string | null
+    camera_pair?: {
+      id: number | null
+      uuid: string | null
+      name: string | null
+    }
+  }
+  media: {
+    lpr_image?: TripMediaAsset | null
+    support_image?: TripMediaAsset | null
+  }
+}
+
+export interface Trip {
+  id: number
+  uuid: string
+  status: TripStatus
+  opened_at: string | null
+  closed_at: string | null
+  review_required_reason: string | null
+  current_load_status: LoadStatus
+  events_count?: number
+  vehicle?: Pick<Vehicle, 'id' | 'uuid' | 'plate' | 'plate_normalized' | 'fleet_code'>
+  location?: Pick<Location, 'id' | 'uuid' | 'name'>
+  events?: TripEvent[]
+}
+
+export interface TripFilters {
+  status?: TripStatus | ''
+  plate?: string
+  load_status?: LoadStatus | ''
+}
