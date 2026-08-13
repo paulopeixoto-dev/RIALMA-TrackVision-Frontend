@@ -219,27 +219,40 @@ describe('TripsPage', () => {
     expect(allowedWrapper.findAll('button').map((button) => button.text())).toContain('PDF')
   })
 
-  it('downloads CSV and PDF with the current filters', async () => {
+  it('downloads CSV and PDF with local and edited date and direction filters', async () => {
     const authStore = useAuthStore()
     authStore.permissions = ['captures.view', 'reports.view']
-    const wrapper = mount(TripsPage)
-    await waitForPromises()
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-08-13T23:30:00-03:00'))
 
-    await wrapper.get('[data-test="export-csv"]').trigger('click')
-    await wrapper.get('[data-test="export-pdf"]').trigger('click')
+    try {
+      const wrapper = mount(TripsPage)
+      await vi.runAllTimersAsync()
 
-    expect(reportsService.downloadCsv).toHaveBeenCalledWith(expect.objectContaining({
-      date_from: expect.any(String),
-      date_to: expect.any(String),
-      status: '',
-      plate: '',
-      load_status: '',
-      direction: '',
-    }))
-    expect(reportsService.downloadPdf).toHaveBeenCalledWith(expect.objectContaining({
-      date_from: expect.any(String),
-      date_to: expect.any(String),
-    }))
+      await wrapper.get('[data-test="export-csv"]').trigger('click')
+      expect(reportsService.downloadCsv).toHaveBeenCalledWith(expect.objectContaining({
+        date_from: '2026-08-06',
+        date_to: '2026-08-13',
+        status: '',
+        plate: '',
+        load_status: '',
+        direction: '',
+      }))
+
+      const dateInputs = wrapper.findAll('input[type="date"]')
+      await dateInputs[0].setValue('2026-08-01')
+      await dateInputs[1].setValue('2026-08-12')
+      await wrapper.findAll('select')[2].setValue('inbound')
+      await wrapper.get('[data-test="export-pdf"]').trigger('click')
+
+      expect(reportsService.downloadPdf).toHaveBeenCalledWith(expect.objectContaining({
+        date_from: '2026-08-01',
+        date_to: '2026-08-12',
+        direction: 'inbound',
+      }))
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('renders load status audit timeline in selected trip detail', async () => {
