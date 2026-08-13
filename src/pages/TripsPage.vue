@@ -43,6 +43,8 @@ const success = ref('')
 const filters = ref<Required<TripFilters>>({ status: '', plate: '', load_status: '' })
 const imageUrls = ref<Record<number, string>>({})
 const canManageTrips = computed(() => authStore.can('trips.manage'))
+let selectionRequestId = 0
+let isPageActive = true
 
 function tripFrom(row: unknown): Trip {
   return row as Trip
@@ -69,6 +71,10 @@ function revokeImages(): void {
   imageUrls.value = {}
 }
 
+function isCurrentSelection(requestId: number): boolean {
+  return isPageActive && requestId === selectionRequestId
+}
+
 async function loadTrips(): Promise<void> {
   loading.value = true
   error.value = ''
@@ -84,26 +90,44 @@ async function loadTrips(): Promise<void> {
 }
 
 async function selectTrip(trip: Trip): Promise<void> {
+  const requestId = ++selectionRequestId
   detailLoading.value = true
   error.value = ''
   revokeImages()
 
   try {
-    selectedTrip.value = await tripsService.show(trip)
-    await loadImages(selectedTrip.value.events ?? [])
+    const loadedTrip = await tripsService.show(trip)
+
+    if (!isCurrentSelection(requestId)) {
+      return
+    }
+
+    selectedTrip.value = loadedTrip
+    await loadImages(loadedTrip.events ?? [], requestId)
   } catch {
-    error.value = 'Nao foi possivel carregar detalhes da viagem.'
+    if (isCurrentSelection(requestId)) {
+      error.value = 'Nao foi possivel carregar detalhes da viagem.'
+    }
   } finally {
-    detailLoading.value = false
+    if (isCurrentSelection(requestId)) {
+      detailLoading.value = false
+    }
   }
 }
 
-async function loadImages(events: TripEvent[]): Promise<void> {
+async function loadImages(events: TripEvent[], requestId: number): Promise<void> {
   const pairs = events.flatMap((event) => [event.media.lpr_image, event.media.support_image].filter(Boolean))
 
   for (const media of pairs) {
     if (media) {
-      imageUrls.value[media.id] = await mediaAssetsService.fetchObjectUrl(media.content_endpoint)
+      const url = await mediaAssetsService.fetchObjectUrl(media.content_endpoint)
+
+      if (!isCurrentSelection(requestId)) {
+        mediaAssetsService.revokeObjectUrl(url)
+        return
+      }
+
+      imageUrls.value[media.id] = url
     }
   }
 }
@@ -131,7 +155,11 @@ async function updateLoadStatus(event: TripEvent, loadStatus: LoadStatus): Promi
 }
 
 onMounted(loadTrips)
-onBeforeUnmount(revokeImages)
+onBeforeUnmount(() => {
+  isPageActive = false
+  selectionRequestId += 1
+  revokeImages()
+})
 </script>
 
 <template>
