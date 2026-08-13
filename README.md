@@ -53,10 +53,10 @@ A rota `/trips` e a tela operacional de revisao de carga. Ela exige `captures.vi
 
 Midias privadas sao buscadas pela API com o token Bearer e renderizadas como `Object URL` temporaria. Tokens nunca sao adicionados a URLs de midia.
 
-### Trip Reports And Audit Timeline
+### Relatorios de Viagens e Linha do Tempo de Auditoria
 
-The `/trips` screen shows CSV/PDF export buttons when the user has `reports.view`.
+A tela `/trips` mostra botoes de exportacao CSV/PDF quando o usuario possui `reports.view`.
 
-Report downloads use the current filters and send the Bearer token through the Authorization header. Tokens are never appended to report URLs.
+Os downloads de relatorio usam os filtros atuais e enviam o token Bearer pelo cabecalho Authorization. Tokens nunca sao adicionados a URLs de relatorio.
 
-Trip event details show the load-status audit timeline returned by the backend.
+Os detalhes do evento de viagem mostram a linha do tempo de auditoria do status de carga retornada pelo backend.
