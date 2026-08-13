@@ -6,9 +6,10 @@ import BaseInput from '@/components/base/BaseInput.vue'
 import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseTable from '@/components/base/BaseTable.vue'
 import { mediaAssetsService } from '@/services/mediaAssetsService'
+import { reportsService } from '@/services/reportsService'
 import { tripsService } from '@/services/tripsService'
 import { useAuthStore } from '@/stores/authStore'
-import type { LoadStatus, Trip, TripEvent, TripFilters } from '@/types/admin'
+import type { LoadStatus, Trip, TripEvent, TripEventLoadStatusAudit, TripFilters } from '@/types/admin'
 
 const authStore = useAuthStore()
 const columns = [
@@ -33,6 +34,12 @@ const loadOptions = [
   { label: 'Vazio', value: 'empty' },
   { label: 'Precisa revisao', value: 'needs_review' },
 ]
+const directionOptions = [
+  { label: 'Todas', value: '' },
+  { label: 'Ida', value: 'outbound' },
+  { label: 'Volta', value: 'inbound' },
+  { label: 'Indefinida', value: 'unknown' },
+]
 const trips = ref<Trip[]>([])
 const selectedTrip = ref<Trip | null>(null)
 const loading = ref(true)
@@ -40,20 +47,20 @@ const detailLoading = ref(false)
 const savingEventId = ref<number | null>(null)
 const error = ref('')
 const success = ref('')
-const filters = ref<Required<TripFilters>>({
+const filters = ref<Required<Pick<TripFilters, 'status' | 'plate' | 'load_status' | 'date_from' | 'date_to' | 'direction'>>>({
   status: '',
   plate: '',
   load_status: '',
-  date_from: '',
-  date_to: '',
-  vehicle_id: '',
-  location_id: '',
+  date_from: initialDateFrom(),
+  date_to: dateInputValue(new Date()),
   direction: '',
 })
 const imageUrls = ref<Record<number, string>>({})
 const currentPage = ref(1)
 const lastPage = ref(1)
 const canManageTrips = computed(() => authStore.can('trips.manage'))
+const canViewReports = computed(() => authStore.can('reports.view'))
+const exporting = ref<'csv' | 'pdf' | null>(null)
 let selectionRequestId = 0
 let isPageActive = true
 
@@ -73,8 +80,23 @@ function directionLabel(direction: string): string {
   return ({ outbound: 'Ida', inbound: 'Volta', unknown: 'Indefinida' } as Record<string, string>)[direction] ?? direction
 }
 
+function dateInputValue(date: Date): string {
+  return date.toISOString().slice(0, 10)
+}
+
+function initialDateFrom(): string {
+  const date = new Date()
+  date.setDate(date.getDate() - 7)
+  return dateInputValue(date)
+}
+
 function formatDate(value: string | null | undefined): string {
   return value ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : '-'
+}
+
+function auditLabel(audit: TripEventLoadStatusAudit): string {
+  const actor = audit.user.name ?? audit.user.email ?? 'Usuario'
+  return `${actor}: ${loadLabel(audit.old_load_status)} para ${loadLabel(audit.new_load_status)}`
 }
 
 function revokeImages(): void {
@@ -109,6 +131,26 @@ async function loadTrips(page = currentPage.value): Promise<void> {
 
 function applyFilters(): void {
   void loadTrips(1)
+}
+
+async function exportReport(format: 'csv' | 'pdf'): Promise<void> {
+  exporting.value = format
+  error.value = ''
+  success.value = ''
+
+  try {
+    if (format === 'csv') {
+      await reportsService.downloadCsv(filters.value)
+    } else {
+      await reportsService.downloadPdf(filters.value)
+    }
+
+    success.value = 'Relatorio solicitado.'
+  } catch {
+    error.value = 'Nao foi possivel baixar o relatorio.'
+  } finally {
+    exporting.value = null
+  }
 }
 
 function previousPage(): void {
@@ -212,13 +254,34 @@ onBeforeUnmount(() => {
         </p>
         <h1>Viagens</h1>
       </div>
-      <BaseButton
-        type="button"
-        variant="secondary"
-        @click="loadTrips"
-      >
-        Atualizar
-      </BaseButton>
+      <div class="header-actions">
+        <BaseButton
+          type="button"
+          variant="secondary"
+          @click="loadTrips"
+        >
+          Atualizar
+        </BaseButton>
+        <BaseButton
+          v-if="canViewReports"
+          data-test="export-csv"
+          type="button"
+          variant="secondary"
+          :loading="exporting === 'csv'"
+          @click="exportReport('csv')"
+        >
+          CSV
+        </BaseButton>
+        <BaseButton
+          v-if="canViewReports"
+          data-test="export-pdf"
+          type="button"
+          :loading="exporting === 'pdf'"
+          @click="exportReport('pdf')"
+        >
+          PDF
+        </BaseButton>
+      </div>
     </header>
 
     <div class="filters-row">
@@ -236,6 +299,21 @@ onBeforeUnmount(() => {
         v-model="filters.load_status"
         label="Carga"
         :options="loadOptions"
+      />
+      <BaseInput
+        v-model="filters.date_from"
+        label="De"
+        type="date"
+      />
+      <BaseInput
+        v-model="filters.date_to"
+        label="Ate"
+        type="date"
+      />
+      <BaseSelect
+        v-model="filters.direction"
+        label="Direcao"
+        :options="directionOptions"
       />
       <BaseButton
         type="button"
@@ -395,6 +473,22 @@ onBeforeUnmount(() => {
                 Precisa revisao
               </BaseButton>
             </div>
+
+            <section
+              v-if="event.load_status_audits?.length"
+              class="audit-timeline"
+            >
+              <h3>Historico de carga</h3>
+              <ol>
+                <li
+                  v-for="audit in event.load_status_audits"
+                  :key="audit.id"
+                >
+                  <span>{{ auditLabel(audit) }}</span>
+                  <small>{{ formatDate(audit.changed_at) }}</small>
+                </li>
+              </ol>
+            </section>
           </article>
         </template>
       </aside>
@@ -403,11 +497,18 @@ onBeforeUnmount(() => {
 </template>
 
 <style scoped>
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .filters-row {
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(4, minmax(140px, 1fr));
+  grid-template-columns: repeat(7, minmax(110px, 1fr));
   margin-bottom: 16px;
 }
 
@@ -450,6 +551,34 @@ onBeforeUnmount(() => {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+}
+
+.audit-timeline {
+  margin-top: 14px;
+}
+
+.audit-timeline h3 {
+  font-size: 0.95rem;
+  margin: 0 0 8px;
+}
+
+.audit-timeline ol {
+  display: grid;
+  gap: 6px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.audit-timeline li {
+  border-left: 3px solid var(--color-border);
+  display: grid;
+  gap: 2px;
+  padding-left: 8px;
+}
+
+.audit-timeline small {
+  color: var(--color-muted);
 }
 
 .media-grid {

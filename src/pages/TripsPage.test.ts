@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mediaAssetsService } from '@/services/mediaAssetsService'
+import { reportsService } from '@/services/reportsService'
 import { useAuthStore } from '@/stores/authStore'
 import { tripsService } from '@/services/tripsService'
 import TripsPage from './TripsPage.vue'
@@ -40,6 +41,14 @@ const { trip, detailedTrip } = vi.hoisted(() => {
         lpr_image: { id: 11, uuid: 'lpr-media', kind: 'lpr_image', content_type: 'image/jpeg', byte_size: 10, content_endpoint: '/api/v1/admin/media-assets/11/content' },
         support_image: { id: 12, uuid: 'support-media', kind: 'support_image', content_type: 'image/jpeg', byte_size: 10, content_endpoint: '/api/v1/admin/media-assets/12/content' },
       },
+      load_status_audits: [{
+        id: 99,
+        uuid: 'audit-uuid',
+        old_load_status: 'unknown',
+        new_load_status: 'loaded',
+        changed_at: '2026-08-13T15:00:00Z',
+        user: { id: 5, uuid: 'user-uuid', name: 'Paulo Peixoto', email: 'paulo@example.com' },
+      }],
     }],
   }
 
@@ -58,6 +67,13 @@ vi.mock('@/services/mediaAssetsService', () => ({
   mediaAssetsService: {
     fetchObjectUrl: vi.fn().mockResolvedValue('blob:image-url'),
     revokeObjectUrl: vi.fn(),
+  },
+}))
+
+vi.mock('@/services/reportsService', () => ({
+  reportsService: {
+    downloadCsv: vi.fn().mockResolvedValue(undefined),
+    downloadPdf: vi.fn().mockResolvedValue(undefined),
   },
 }))
 
@@ -82,6 +98,8 @@ describe('TripsPage', () => {
     vi.mocked(tripsService.updateLoadStatus).mockReset().mockResolvedValue({ ...detailedTrip.events[0], load_status: 'loaded' } as never)
     vi.mocked(mediaAssetsService.fetchObjectUrl).mockReset().mockResolvedValue('blob:image-url')
     vi.mocked(mediaAssetsService.revokeObjectUrl).mockReset()
+    vi.mocked(reportsService.downloadCsv).mockReset().mockResolvedValue(undefined)
+    vi.mocked(reportsService.downloadPdf).mockReset().mockResolvedValue(undefined)
   })
 
   it('renders trips returned by the API', async () => {
@@ -162,30 +180,94 @@ describe('TripsPage', () => {
     await wrapper.get('[data-test="next-page"]').trigger('click')
     await waitForPromises()
     expect(wrapper.text()).toContain('XYZ-9Z99')
-    expect(tripsService.list).toHaveBeenLastCalledWith({
+    expect(tripsService.list).toHaveBeenLastCalledWith(expect.objectContaining({
       status: '',
       plate: '',
       load_status: '',
-      date_from: '',
-      date_to: '',
-      vehicle_id: '',
-      location_id: '',
       direction: '',
-    }, 2)
+      date_from: expect.any(String),
+      date_to: expect.any(String),
+    }), 2)
 
     await wrapper.get('[data-test="previous-page"]').trigger('click')
     await waitForPromises()
     expect(wrapper.text()).toContain('ABC-1D23')
-    expect(tripsService.list).toHaveBeenLastCalledWith({
+    expect(tripsService.list).toHaveBeenLastCalledWith(expect.objectContaining({
       status: '',
       plate: '',
       load_status: '',
-      date_from: '',
-      date_to: '',
-      vehicle_id: '',
-      location_id: '',
       direction: '',
-    }, 1)
+      date_from: expect.any(String),
+      date_to: expect.any(String),
+    }), 1)
+  })
+
+  it('shows report buttons only when user can view reports', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['captures.view']
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+
+    expect(wrapper.findAll('button').map((button) => button.text())).not.toContain('CSV')
+    expect(wrapper.findAll('button').map((button) => button.text())).not.toContain('PDF')
+
+    authStore.permissions = ['captures.view', 'reports.view']
+    const allowedWrapper = mount(TripsPage)
+    await waitForPromises()
+
+    expect(allowedWrapper.findAll('button').map((button) => button.text())).toContain('CSV')
+    expect(allowedWrapper.findAll('button').map((button) => button.text())).toContain('PDF')
+  })
+
+  it('downloads CSV and PDF with the current filters', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['captures.view', 'reports.view']
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+
+    await wrapper.get('[data-test="export-csv"]').trigger('click')
+    await wrapper.get('[data-test="export-pdf"]').trigger('click')
+
+    expect(reportsService.downloadCsv).toHaveBeenCalledWith(expect.objectContaining({
+      date_from: expect.any(String),
+      date_to: expect.any(String),
+      status: '',
+      plate: '',
+      load_status: '',
+      direction: '',
+    }))
+    expect(reportsService.downloadPdf).toHaveBeenCalledWith(expect.objectContaining({
+      date_from: expect.any(String),
+      date_to: expect.any(String),
+    }))
+  })
+
+  it('renders load status audit timeline in selected trip detail', async () => {
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+    await wrapper.get('[data-test="select-trip"]').trigger('click')
+    await waitForPromises()
+
+    expect(wrapper.text()).toContain('Historico de carga')
+    expect(wrapper.text()).toContain('Paulo Peixoto')
+    expect(wrapper.text()).toContain('Nao revisada')
+    expect(wrapper.text()).toContain('Carregado')
+  })
+
+  it('shows export error without clearing selected trip', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['captures.view', 'reports.view']
+    vi.mocked(reportsService.downloadCsv).mockRejectedValueOnce(new Error('download failed'))
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+    await wrapper.get('[data-test="select-trip"]').trigger('click')
+    await waitForPromises()
+
+    await wrapper.get('[data-test="export-csv"]').trigger('click')
+    await waitForPromises()
+
+    expect(wrapper.text()).toContain('Nao foi possivel baixar o relatorio.')
+    expect(wrapper.text()).toContain('Entrada 01')
   })
 
   it('shows load actions only when user can manage trips', async () => {
