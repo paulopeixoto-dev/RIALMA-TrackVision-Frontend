@@ -287,7 +287,10 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <div class="filters-row">
+    <div
+      class="filters-row"
+      data-test="trip-filters"
+    >
       <BaseSelect
         v-model="filters.status"
         label="Status"
@@ -511,7 +514,7 @@ onBeforeUnmount(() => {
   align-items: end;
   display: grid;
   gap: 12px;
-  grid-template-columns: repeat(7, minmax(110px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
   margin-bottom: 16px;
 }
 

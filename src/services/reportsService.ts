@@ -22,6 +22,23 @@ function queryFrom(filters: TripFilters): string {
   return query ? `?${query}` : ''
 }
 
+function filenameFrom(response: Response, fallback: string): string {
+  const contentDisposition = response.headers.get('Content-Disposition')
+  if (!contentDisposition) return fallback
+
+  const encodedFilename = contentDisposition.match(/filename\*\s*=\s*UTF-8''([^;]+)/i)?.[1]
+  if (encodedFilename) {
+    try {
+      return decodeURIComponent(encodedFilename)
+    } catch {
+      return fallback
+    }
+  }
+
+  const filename = contentDisposition.match(/filename\s*=\s*(?:"([^"]+)"|([^;\s]+))/i)
+  return filename?.[1] ?? filename?.[2] ?? fallback
+}
+
 async function downloadReport(path: string, filters: TripFilters, accept: string, filename: string): Promise<void> {
   const headers = new Headers()
   headers.set('Accept', accept)
@@ -40,7 +57,7 @@ async function downloadReport(path: string, filters: TripFilters, accept: string
   const url = URL.createObjectURL(await response.blob())
   const anchor = document.createElement('a')
   anchor.href = url
-  anchor.download = filename
+  anchor.download = filenameFrom(response, filename)
   anchor.click()
   URL.revokeObjectURL(url)
 }

@@ -19,6 +19,8 @@ describe('tripsService', () => {
       load_status: 'unknown',
       date_from: '2026-08-01',
       date_to: '2026-08-31',
+      vehicle_id: 42,
+      location_id: 7,
       direction: 'outbound',
     }, 2)
 
@@ -29,6 +31,8 @@ describe('tripsService', () => {
     expect(url).toContain('load_status=unknown')
     expect(url).toContain('date_from=2026-08-01')
     expect(url).toContain('date_to=2026-08-31')
+    expect(url).toContain('vehicle_id=42')
+    expect(url).toContain('location_id=7')
     expect(url).toContain('direction=outbound')
     expect(url).toContain('page=2')
     expect((init.headers as Headers).get('Authorization')).toBe('Bearer token-123')

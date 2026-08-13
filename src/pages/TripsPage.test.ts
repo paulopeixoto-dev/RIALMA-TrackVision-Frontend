@@ -202,6 +202,13 @@ describe('TripsPage', () => {
     }), 1)
   })
 
+  it('groups all filter controls in the responsive filter grid', async () => {
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+
+    expect(wrapper.get('[data-test="trip-filters"]').findAll('input, select, button')).toHaveLength(7)
+  })
+
   it('shows report buttons only when user can view reports', async () => {
     const authStore = useAuthStore()
     authStore.permissions = ['captures.view']
