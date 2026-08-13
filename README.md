@@ -46,3 +46,9 @@ nodes, cameras, and camera pairs.
 
 Users, roles, and permissions are read-only because the backend currently exposes
 only list endpoints for these resources.
+
+### Trips Page
+
+The `/trips` route is the operational load-review screen. It requires `captures.view` to open and shows the `loaded`, `empty`, and `needs_review` actions only when the effective permissions include `trips.manage`.
+
+Private media is fetched through the API with the Bearer token and rendered as temporary Object URLs. Tokens are never appended to media URLs.
