@@ -162,12 +162,30 @@ describe('TripsPage', () => {
     await wrapper.get('[data-test="next-page"]').trigger('click')
     await waitForPromises()
     expect(wrapper.text()).toContain('XYZ-9Z99')
-    expect(tripsService.list).toHaveBeenLastCalledWith({ status: '', plate: '', load_status: '' }, 2)
+    expect(tripsService.list).toHaveBeenLastCalledWith({
+      status: '',
+      plate: '',
+      load_status: '',
+      date_from: '',
+      date_to: '',
+      vehicle_id: '',
+      location_id: '',
+      direction: '',
+    }, 2)
 
     await wrapper.get('[data-test="previous-page"]').trigger('click')
     await waitForPromises()
     expect(wrapper.text()).toContain('ABC-1D23')
-    expect(tripsService.list).toHaveBeenLastCalledWith({ status: '', plate: '', load_status: '' }, 1)
+    expect(tripsService.list).toHaveBeenLastCalledWith({
+      status: '',
+      plate: '',
+      load_status: '',
+      date_from: '',
+      date_to: '',
+      vehicle_id: '',
+      location_id: '',
+      direction: '',
+    }, 1)
   })
 
   it('shows load actions only when user can manage trips', async () => {

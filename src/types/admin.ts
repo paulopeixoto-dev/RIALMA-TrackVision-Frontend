@@ -113,6 +113,20 @@ export interface TripMediaAsset {
   content_endpoint: string
 }
 
+export interface TripEventLoadStatusAudit {
+  id: number
+  uuid: string
+  old_load_status: LoadStatus
+  new_load_status: LoadStatus
+  changed_at: string | null
+  user: {
+    id: number | null
+    uuid: string | null
+    name: string | null
+    email: string | null
+  }
+}
+
 export interface TripEvent {
   id: number
   uuid: string
@@ -135,6 +149,7 @@ export interface TripEvent {
     lpr_image?: TripMediaAsset | null
     support_image?: TripMediaAsset | null
   }
+  load_status_audits?: TripEventLoadStatusAudit[]
 }
 
 export interface Trip {
@@ -155,4 +170,9 @@ export interface TripFilters {
   status?: TripStatus | ''
   plate?: string
   load_status?: LoadStatus | ''
+  date_from?: string
+  date_to?: string
+  vehicle_id?: number | ''
+  location_id?: number | ''
+  direction?: TripEventDirection | ''
 }

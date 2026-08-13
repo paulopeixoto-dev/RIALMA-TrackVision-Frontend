@@ -14,6 +14,11 @@ function queryFrom(filters: TripFilters = {}, page = 1): string {
   if (filters.status) params.set('status', filters.status)
   if (filters.plate?.trim()) params.set('plate', filters.plate.trim())
   if (filters.load_status) params.set('load_status', filters.load_status)
+  if (filters.date_from) params.set('date_from', filters.date_from)
+  if (filters.date_to) params.set('date_to', filters.date_to)
+  if (filters.vehicle_id) params.set('vehicle_id', String(filters.vehicle_id))
+  if (filters.location_id) params.set('location_id', String(filters.location_id))
+  if (filters.direction) params.set('direction', filters.direction)
   params.set('page', String(page))
 
   const query = params.toString()

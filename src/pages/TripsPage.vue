@@ -40,7 +40,16 @@ const detailLoading = ref(false)
 const savingEventId = ref<number | null>(null)
 const error = ref('')
 const success = ref('')
-const filters = ref<Required<TripFilters>>({ status: '', plate: '', load_status: '' })
+const filters = ref<Required<TripFilters>>({
+  status: '',
+  plate: '',
+  load_status: '',
+  date_from: '',
+  date_to: '',
+  vehicle_id: '',
+  location_id: '',
+  direction: '',
+})
 const imageUrls = ref<Record<number, string>>({})
 const currentPage = ref(1)
 const lastPage = ref(1)
