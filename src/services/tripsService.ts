@@ -8,20 +8,21 @@ const client = createApiClient({
   getToken: () => localStorage.getItem('trackvision.token'),
 })
 
-function queryFrom(filters: TripFilters = {}): string {
+function queryFrom(filters: TripFilters = {}, page = 1): string {
   const params = new URLSearchParams()
 
   if (filters.status) params.set('status', filters.status)
   if (filters.plate?.trim()) params.set('plate', filters.plate.trim())
   if (filters.load_status) params.set('load_status', filters.load_status)
+  params.set('page', String(page))
 
   const query = params.toString()
   return query ? `?${query}` : ''
 }
 
 export const tripsService = {
-  list(filters: TripFilters = {}): Promise<LaravelPaginated<Trip>> {
-    return client.get<LaravelPaginated<Trip>>(`/admin/trips${queryFrom(filters)}`)
+  list(filters: TripFilters = {}, page = 1): Promise<LaravelPaginated<Trip>> {
+    return client.get<LaravelPaginated<Trip>>(`/admin/trips${queryFrom(filters, page)}`)
   },
 
   async show(trip: Trip): Promise<Trip> {

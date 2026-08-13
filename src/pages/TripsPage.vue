@@ -42,6 +42,8 @@ const error = ref('')
 const success = ref('')
 const filters = ref<Required<TripFilters>>({ status: '', plate: '', load_status: '' })
 const imageUrls = ref<Record<number, string>>({})
+const currentPage = ref(1)
+const lastPage = ref(1)
 const canManageTrips = computed(() => authStore.can('trips.manage'))
 let selectionRequestId = 0
 let isPageActive = true
@@ -75,17 +77,40 @@ function isCurrentSelection(requestId: number): boolean {
   return isPageActive && requestId === selectionRequestId
 }
 
-async function loadTrips(): Promise<void> {
+function paginationValue(meta: Record<string, unknown> | undefined, key: string, fallback: number): number {
+  const value = meta?.[key]
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : fallback
+}
+
+async function loadTrips(page = currentPage.value): Promise<void> {
   loading.value = true
   error.value = ''
 
   try {
-    const response = await tripsService.list(filters.value)
+    const response = await tripsService.list(filters.value, page)
     trips.value = response.data
+    currentPage.value = paginationValue(response.meta, 'current_page', page)
+    lastPage.value = paginationValue(response.meta, 'last_page', 1)
   } catch {
     error.value = 'Nao foi possivel carregar viagens.'
   } finally {
     loading.value = false
+  }
+}
+
+function applyFilters(): void {
+  void loadTrips(1)
+}
+
+function previousPage(): void {
+  if (currentPage.value > 1) {
+    void loadTrips(currentPage.value - 1)
+  }
+}
+
+function nextPage(): void {
+  if (currentPage.value < lastPage.value) {
+    void loadTrips(currentPage.value + 1)
   }
 }
 
@@ -94,6 +119,7 @@ async function selectTrip(trip: Trip): Promise<void> {
   detailLoading.value = true
   error.value = ''
   revokeImages()
+  selectedTrip.value = null
 
   try {
     const loadedTrip = await tripsService.show(trip)
@@ -120,7 +146,13 @@ async function loadImages(events: TripEvent[], requestId: number): Promise<void>
 
   for (const media of pairs) {
     if (media) {
-      const url = await mediaAssetsService.fetchObjectUrl(media.content_endpoint)
+      let url: string
+
+      try {
+        url = await mediaAssetsService.fetchObjectUrl(media.content_endpoint)
+      } catch {
+        continue
+      }
 
       if (!isCurrentSelection(requestId)) {
         mediaAssetsService.revokeObjectUrl(url)
@@ -198,7 +230,7 @@ onBeforeUnmount(() => {
       />
       <BaseButton
         type="button"
-        @click="loadTrips"
+        @click="applyFilters"
       >
         Filtrar
       </BaseButton>
@@ -243,6 +275,31 @@ onBeforeUnmount(() => {
           </td>
         </template>
       </BaseTable>
+
+      <div
+        v-if="lastPage > 1"
+        class="pagination-row"
+      >
+        <BaseButton
+          data-test="previous-page"
+          type="button"
+          variant="secondary"
+          :disabled="loading || currentPage === 1"
+          @click="previousPage"
+        >
+          Anterior
+        </BaseButton>
+        <span class="muted">Pagina {{ currentPage }} de {{ lastPage }}</span>
+        <BaseButton
+          data-test="next-page"
+          type="button"
+          variant="secondary"
+          :disabled="loading || currentPage === lastPage"
+          @click="nextPage"
+        >
+          Proxima
+        </BaseButton>
+      </div>
 
       <aside class="trip-detail">
         <p
@@ -350,6 +407,14 @@ onBeforeUnmount(() => {
   display: grid;
   gap: 20px;
   grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+}
+
+.pagination-row {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: end;
+  margin-top: 12px;
 }
 
 .trip-detail {

@@ -104,6 +104,72 @@ describe('TripsPage', () => {
     expect(wrapper.findAll('img')).toHaveLength(2)
   })
 
+  it('clears the previous detail when a newly selected trip fails to load', async () => {
+    const nextTrip = {
+      ...trip,
+      id: 2,
+      uuid: 'trip-uuid-2',
+      vehicle: { ...trip.vehicle, id: 2, uuid: 'vehicle-uuid-2', plate: 'XYZ-9Z99' },
+    }
+    vi.mocked(tripsService.list).mockResolvedValue({ data: [trip, nextTrip] } as never)
+
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+
+    const selectionButtons = wrapper.findAll('[data-test="select-trip"]')
+    await selectionButtons[0].trigger('click')
+    await waitForPromises()
+    expect(wrapper.text()).toContain('Entrada 01')
+
+    vi.mocked(tripsService.show).mockRejectedValueOnce(new Error('not found'))
+    await selectionButtons[1].trigger('click')
+    await waitForPromises()
+
+    expect(wrapper.text()).toContain('Nao foi possivel carregar detalhes da viagem.')
+    expect(wrapper.text()).not.toContain('Entrada 01')
+  })
+
+  it('loads support media when the LPR media request fails', async () => {
+    vi.mocked(mediaAssetsService.fetchObjectUrl)
+      .mockRejectedValueOnce(new Error('missing LPR'))
+      .mockResolvedValueOnce('blob:support-image-url')
+
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+    await wrapper.get('[data-test="select-trip"]').trigger('click')
+    await waitForPromises()
+
+    expect(wrapper.findAll('img')).toHaveLength(1)
+    expect(wrapper.find('img').attributes('src')).toBe('blob:support-image-url')
+    expect(wrapper.text()).toContain('Sem imagem LPR')
+  })
+
+  it('moves between available trip pages', async () => {
+    const nextTrip = {
+      ...trip,
+      id: 2,
+      uuid: 'trip-uuid-2',
+      vehicle: { ...trip.vehicle, id: 2, uuid: 'vehicle-uuid-2', plate: 'XYZ-9Z99' },
+    }
+    vi.mocked(tripsService.list)
+      .mockResolvedValueOnce({ data: [trip], meta: { current_page: 1, last_page: 2 } } as never)
+      .mockResolvedValueOnce({ data: [nextTrip], meta: { current_page: 2, last_page: 2 } } as never)
+      .mockResolvedValueOnce({ data: [trip], meta: { current_page: 1, last_page: 2 } } as never)
+
+    const wrapper = mount(TripsPage)
+    await waitForPromises()
+
+    await wrapper.get('[data-test="next-page"]').trigger('click')
+    await waitForPromises()
+    expect(wrapper.text()).toContain('XYZ-9Z99')
+    expect(tripsService.list).toHaveBeenLastCalledWith({ status: '', plate: '', load_status: '' }, 2)
+
+    await wrapper.get('[data-test="previous-page"]').trigger('click')
+    await waitForPromises()
+    expect(wrapper.text()).toContain('ABC-1D23')
+    expect(tripsService.list).toHaveBeenLastCalledWith({ status: '', plate: '', load_status: '' }, 1)
+  })
+
   it('shows load actions only when user can manage trips', async () => {
     const authStore = useAuthStore()
     authStore.permissions = ['captures.view']

@@ -10,16 +10,17 @@ describe('tripsService', () => {
     fetchMock.mockReset()
   })
 
-  it('lists trips with filters', async () => {
+  it('lists trips with filters and page', async () => {
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ data: [] }), { status: 200 }))
 
-    await tripsService.list({ status: 'open', plate: 'ABC-1D23', load_status: 'unknown' })
+    await tripsService.list({ status: 'open', plate: 'ABC-1D23', load_status: 'unknown' }, 2)
 
     const [url, init] = fetchMock.mock.calls[0]
     expect(url).toContain('/admin/trips?')
     expect(url).toContain('status=open')
     expect(url).toContain('plate=ABC-1D23')
     expect(url).toContain('load_status=unknown')
+    expect(url).toContain('page=2')
     expect((init.headers as Headers).get('Authorization')).toBe('Bearer token-123')
   })
 
