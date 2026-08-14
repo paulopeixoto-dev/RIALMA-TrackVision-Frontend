@@ -5,9 +5,24 @@ import { useAuthStore } from '@/stores/authStore'
 const authStore = useAuthStore()
 
 const modules = computed(() => [
-  { label: 'Usuarios', route: 'users', permission: 'users.manage' },
-  { label: 'Veiculos', route: 'vehicles', permission: 'vehicles.manage' },
-  { label: 'Locais e cameras', route: 'locations', permission: 'cameras.manage' },
+  {
+    label: 'Usuarios',
+    route: 'users',
+    permission: 'users.manage',
+    description: 'Controle de acesso administrativo',
+  },
+  {
+    label: 'Veiculos',
+    route: 'vehicles',
+    permission: 'vehicles.manage',
+    description: 'Cadastro de caminhoes monitorados',
+  },
+  {
+    label: 'Locais e cameras',
+    route: 'locations',
+    permission: 'cameras.manage',
+    description: 'Topologia de portarias e equipamentos',
+  },
 ].filter((module) => authStore.can(module.permission)))
 </script>
 
@@ -27,14 +42,18 @@ const modules = computed(() => [
         <p class="muted">
           Acesse os cadastros administrativos permitidos para sua sessao.
         </p>
-        <div class="module-grid">
+        <div
+          class="module-grid"
+          data-test="dashboard-module-grid"
+        >
           <RouterLink
             v-for="module in modules"
             :key="module.route"
-            class="module-link"
+            class="module-card"
             :to="{ name: module.route }"
           >
-            {{ module.label }}
+            <span>{{ module.label }}</span>
+            <small>{{ module.description }}</small>
           </RouterLink>
         </div>
       </VaCardContent>

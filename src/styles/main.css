@@ -302,31 +302,67 @@ textarea {
 }
 
 .content-panel,
-.trip-detail {
+.trip-detail,
+.utility-card {
   overflow: hidden;
   border-radius: 8px;
 }
 
 .module-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 12px;
 }
 
-.module-link {
-  display: flex;
-  min-height: 64px;
-  align-items: center;
-  padding: 14px;
+.module-card {
+  display: grid;
+  min-height: 96px;
+  align-content: center;
+  gap: 6px;
+  padding: 16px;
   border: 1px solid var(--va-background-border);
   border-radius: 8px;
+  color: var(--va-text-primary);
+  text-decoration: none;
+}
+
+.module-card:hover {
+  border-color: var(--va-primary);
+  background: var(--va-background-element);
+}
+
+.module-card span {
+  color: var(--va-primary);
+  font-weight: 700;
+}
+
+.module-card small {
+  color: var(--va-text-secondary);
+  line-height: 1.35;
+}
+
+.utility-page {
+  align-content: center;
+  min-height: calc(100vh - 112px);
+}
+
+.utility-card {
+  width: min(560px, 100%);
+}
+
+.utility-card__body {
+  display: grid;
+  gap: 16px;
+}
+
+.utility-card__link {
   color: var(--va-primary);
   font-weight: 700;
   text-decoration: none;
 }
 
-.module-link:hover {
-  background: var(--va-background-element);
+.utility-card__link:hover {
+  text-decoration: underline;
 }
 
 .checkbox-group {
