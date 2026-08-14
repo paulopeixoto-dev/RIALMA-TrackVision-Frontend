@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { LogOut } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
+import BaseButton from '@/components/base/BaseButton.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
@@ -20,9 +21,9 @@ async function logout(): Promise<void> {
       </p>
       <strong>{{ authStore.user?.name ?? 'Operador' }}</strong>
     </div>
-    <button
-      class="topbar__logout"
+    <BaseButton
       type="button"
+      variant="secondary"
       title="Sair"
       @click="logout"
     >
@@ -31,6 +32,6 @@ async function logout(): Promise<void> {
         aria-hidden="true"
       />
       <span>Sair</span>
-    </button>
+    </BaseButton>
   </header>
 </template>
