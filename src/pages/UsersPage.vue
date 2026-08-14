@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import UserForm from '@/components/forms/UserForm.vue'
 import UserPasswordForm from '@/components/forms/UserPasswordForm.vue'
 import { ApiError } from '@/services/apiClient'
@@ -227,93 +224,136 @@ onMounted(async () => {
       </VaButton>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
-    <BaseAlert
+    </VaAlert>
+    <VaAlert
       v-if="success"
-      variant="success"
+      color="success"
+      role="status"
     >
       {{ success }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhum usuario encontrado."
+          hoverable
+          :items="users"
+          items-track-by="id"
           :loading="loading"
-          :rows="users"
+          no-data-html="Nenhum usuario encontrado."
         >
-          <template #row="{ row }">
-            <td>{{ userFrom(row).name }}</td>
-            <td>{{ userFrom(row).email }}</td>
-            <td>{{ userFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-            <td>{{ rolesFor(userFrom(row)) }}</td>
-            <td>
-              <div class="row-actions">
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  type="button"
-                  @click="openEdit(userFrom(row))"
-                >
-                  Editar
-                </VaButton>
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  type="button"
-                  @click="openPassword(userFrom(row))"
-                >
-                  Senha
-                </VaButton>
-                <VaButton
-                  class="base-button"
-                  color="danger"
-                  type="button"
-                  @click="deactivateUser(userFrom(row))"
-                >
-                  Desativar
-                </VaButton>
-              </div>
-            </td>
+          <template #cell(name)="{ rowData }">
+            {{ userFrom(rowData).name }}
           </template>
-        </BaseTable>
+          <template #cell(email)="{ rowData }">
+            {{ userFrom(rowData).email }}
+          </template>
+          <template #cell(is_active)="{ rowData }">
+            {{ userFrom(rowData).is_active ? 'Ativo' : 'Inativo' }}
+          </template>
+          <template #cell(roles)="{ rowData }">
+            {{ rolesFor(userFrom(rowData)) }}
+          </template>
+          <template #cell(actions)="{ rowData }">
+            <div class="row-actions">
+              <VaButton
+                class="base-button"
+                color="secondary"
+                type="button"
+                @click="openEdit(userFrom(rowData))"
+              >
+                Editar
+              </VaButton>
+              <VaButton
+                class="base-button"
+                color="secondary"
+                type="button"
+                @click="openPassword(userFrom(rowData))"
+              >
+                Senha
+              </VaButton>
+              <VaButton
+                class="base-button"
+                color="danger"
+                type="button"
+                @click="deactivateUser(userFrom(rowData))"
+              >
+                Desativar
+              </VaButton>
+            </div>
+          </template>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
 
-    <BaseModal
-      :open="userModalOpen"
-      :title="editingUser ? 'Editar usuario' : 'Novo usuario'"
-      @close="closeUserModal"
+    <VaModal
+      :model-value="userModalOpen"
+      hide-default-actions
+      max-width="760px"
+      mobile-fullscreen
+      @update:model-value="!$event && closeUserModal()"
     >
-      <UserForm
-        v-model="userForm"
-        :errors="fieldErrors"
-        :mode="editingUser ? 'edit' : 'create'"
-        :roles="roles"
-        :submitting="submitting"
-        @cancel="closeUserModal"
-        @submit="saveUser"
-      />
-    </BaseModal>
+      <template #header>
+        <div class="base-modal__header">
+          <h2>{{ editingUser ? 'Editar usuario' : 'Novo usuario' }}</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closeUserModal"
+          />
+        </div>
+      </template>
 
-    <BaseModal
-      :open="passwordModalOpen"
-      title="Redefinir senha"
-      @close="closePasswordModal"
+      <div class="base-modal__body">
+        <UserForm
+          v-model="userForm"
+          :errors="fieldErrors"
+          :mode="editingUser ? 'edit' : 'create'"
+          :roles="roles"
+          :submitting="submitting"
+          @cancel="closeUserModal"
+          @submit="saveUser"
+        />
+      </div>
+    </VaModal>
+
+    <VaModal
+      :model-value="passwordModalOpen"
+      hide-default-actions
+      max-width="760px"
+      mobile-fullscreen
+      @update:model-value="!$event && closePasswordModal()"
     >
-      <UserPasswordForm
-        v-model="passwordForm"
-        :errors="passwordFieldErrors"
-        :submitting="submitting"
-        @cancel="closePasswordModal"
-        @submit="savePassword"
-      />
-    </BaseModal>
+      <template #header>
+        <div class="base-modal__header">
+          <h2>Redefinir senha</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closePasswordModal"
+          />
+        </div>
+      </template>
+
+      <div class="base-modal__body">
+        <UserPasswordForm
+          v-model="passwordForm"
+          :errors="passwordFieldErrors"
+          :submitting="submitting"
+          @cancel="closePasswordModal"
+          @submit="savePassword"
+        />
+      </div>
+    </VaModal>
   </section>
 </template>

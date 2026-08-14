@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import EdgeNodeForm from '@/components/forms/EdgeNodeForm.vue'
 import { ApiError } from '@/services/apiClient'
 import { edgeNodesService } from '@/services/edgeNodesService'
@@ -139,71 +136,100 @@ onMounted(loadData)
       </VaButton>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
-    <BaseAlert
+    </VaAlert>
+    <VaAlert
       v-if="success"
-      variant="success"
+      color="success"
+      role="status"
     >
       {{ success }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhum edge node encontrado."
+          hoverable
+          :items="edgeNodes"
+          items-track-by="id"
           :loading="loading"
-          :rows="edgeNodes"
+          no-data-html="Nenhum edge node encontrado."
         >
-          <template #row="{ row }">
-            <td>{{ edgeNodeFrom(row).name }}</td>
-            <td>{{ edgeNodeFrom(row).location?.name ?? '-' }}</td>
-            <td>{{ edgeNodeFrom(row).status }}</td>
-            <td>{{ edgeNodeFrom(row).last_seen_at ?? '-' }}</td>
-            <td>{{ edgeNodeFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-            <td>
-              <div class="row-actions">
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  type="button"
-                  @click="openEdit(edgeNodeFrom(row))"
-                >
-                  Editar
-                </VaButton>
-                <VaButton
-                  class="base-button"
-                  color="danger"
-                  type="button"
-                  @click="deleteEdgeNode(edgeNodeFrom(row))"
-                >
-                  Remover
-                </VaButton>
-              </div>
-            </td>
+          <template #cell(name)="{ rowData }">
+            {{ edgeNodeFrom(rowData).name }}
           </template>
-        </BaseTable>
+          <template #cell(location)="{ rowData }">
+            {{ edgeNodeFrom(rowData).location?.name ?? '-' }}
+          </template>
+          <template #cell(status)="{ rowData }">
+            {{ edgeNodeFrom(rowData).status }}
+          </template>
+          <template #cell(last_seen_at)="{ rowData }">
+            {{ edgeNodeFrom(rowData).last_seen_at ?? '-' }}
+          </template>
+          <template #cell(is_active)="{ rowData }">
+            {{ edgeNodeFrom(rowData).is_active ? 'Ativo' : 'Inativo' }}
+          </template>
+          <template #cell(actions)="{ rowData }">
+            <div class="row-actions">
+              <VaButton
+                class="base-button"
+                color="secondary"
+                type="button"
+                @click="openEdit(edgeNodeFrom(rowData))"
+              >
+                Editar
+              </VaButton>
+              <VaButton
+                class="base-button"
+                color="danger"
+                type="button"
+                @click="deleteEdgeNode(edgeNodeFrom(rowData))"
+              >
+                Remover
+              </VaButton>
+            </div>
+          </template>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
 
-    <BaseModal
-      :open="modalOpen"
-      :title="editingEdgeNode ? 'Editar edge node' : 'Novo edge node'"
-      @close="closeModal"
+    <VaModal
+      :model-value="modalOpen"
+      hide-default-actions
+      max-width="760px"
+      mobile-fullscreen
+      @update:model-value="!$event && closeModal()"
     >
-      <EdgeNodeForm
-        v-model="form"
-        :errors="fieldErrors"
-        :locations="locations"
-        :submitting="submitting"
-        @cancel="closeModal"
-        @submit="saveEdgeNode"
-      />
-    </BaseModal>
+      <template #header>
+        <div class="base-modal__header">
+          <h2>{{ editingEdgeNode ? 'Editar edge node' : 'Novo edge node' }}</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closeModal"
+          />
+        </div>
+      </template>
+
+      <div class="base-modal__body">
+        <EdgeNodeForm
+          v-model="form"
+          :errors="fieldErrors"
+          :locations="locations"
+          :submitting="submitting"
+          @cancel="closeModal"
+          @submit="saveEdgeNode"
+        />
+      </div>
+    </VaModal>
   </section>
 </template>

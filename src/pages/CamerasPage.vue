@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import CameraForm from '@/components/forms/CameraForm.vue'
 import { ApiError } from '@/services/apiClient'
 import { camerasService } from '@/services/camerasService'
@@ -177,73 +174,104 @@ onMounted(loadData)
       </VaButton>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
-    <BaseAlert
+    </VaAlert>
+    <VaAlert
       v-if="success"
-      variant="success"
+      color="success"
+      role="status"
     >
       {{ success }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhuma camera encontrada."
+          hoverable
+          :items="cameras"
+          items-track-by="id"
           :loading="loading"
-          :rows="cameras"
+          no-data-html="Nenhuma camera encontrada."
         >
-          <template #row="{ row }">
-            <td>{{ cameraFrom(row).name }}</td>
-            <td>{{ cameraFrom(row).type }}</td>
-            <td>{{ cameraFrom(row).location?.name ?? '-' }}</td>
-            <td>{{ cameraFrom(row).edge_node?.name ?? '-' }}</td>
-            <td>{{ cameraFrom(row).host }}:{{ cameraFrom(row).port }}</td>
-            <td>{{ cameraFrom(row).is_active ? 'Ativa' : 'Inativa' }}</td>
-            <td>
-              <div class="row-actions">
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  type="button"
-                  @click="openEdit(cameraFrom(row))"
-                >
-                  Editar
-                </VaButton>
-                <VaButton
-                  class="base-button"
-                  color="danger"
-                  type="button"
-                  @click="deleteCamera(cameraFrom(row))"
-                >
-                  Remover
-                </VaButton>
-              </div>
-            </td>
+          <template #cell(name)="{ rowData }">
+            {{ cameraFrom(rowData).name }}
           </template>
-        </BaseTable>
+          <template #cell(type)="{ rowData }">
+            {{ cameraFrom(rowData).type }}
+          </template>
+          <template #cell(location)="{ rowData }">
+            {{ cameraFrom(rowData).location?.name ?? '-' }}
+          </template>
+          <template #cell(edge_node)="{ rowData }">
+            {{ cameraFrom(rowData).edge_node?.name ?? '-' }}
+          </template>
+          <template #cell(host)="{ rowData }">
+            {{ cameraFrom(rowData).host }}:{{ cameraFrom(rowData).port }}
+          </template>
+          <template #cell(is_active)="{ rowData }">
+            {{ cameraFrom(rowData).is_active ? 'Ativa' : 'Inativa' }}
+          </template>
+          <template #cell(actions)="{ rowData }">
+            <div class="row-actions">
+              <VaButton
+                class="base-button"
+                color="secondary"
+                type="button"
+                @click="openEdit(cameraFrom(rowData))"
+              >
+                Editar
+              </VaButton>
+              <VaButton
+                class="base-button"
+                color="danger"
+                type="button"
+                @click="deleteCamera(cameraFrom(rowData))"
+              >
+                Remover
+              </VaButton>
+            </div>
+          </template>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
 
-    <BaseModal
-      :open="modalOpen"
-      :title="editingCamera ? 'Editar camera' : 'Nova camera'"
-      @close="closeModal"
+    <VaModal
+      :model-value="modalOpen"
+      hide-default-actions
+      max-width="760px"
+      mobile-fullscreen
+      @update:model-value="!$event && closeModal()"
     >
-      <CameraForm
-        v-model="form"
-        :edge-nodes="edgeNodes"
-        :errors="fieldErrors"
-        :locations="locations"
-        :submitting="submitting"
-        @cancel="closeModal"
-        @submit="saveCamera"
-      />
-    </BaseModal>
+      <template #header>
+        <div class="base-modal__header">
+          <h2>{{ editingCamera ? 'Editar camera' : 'Nova camera' }}</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closeModal"
+          />
+        </div>
+      </template>
+
+      <div class="base-modal__body">
+        <CameraForm
+          v-model="form"
+          :edge-nodes="edgeNodes"
+          :errors="fieldErrors"
+          :locations="locations"
+          :submitting="submitting"
+          @cancel="closeModal"
+          @submit="saveCamera"
+        />
+      </div>
+    </VaModal>
   </section>
 </template>

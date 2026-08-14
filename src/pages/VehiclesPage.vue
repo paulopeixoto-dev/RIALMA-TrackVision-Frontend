@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import VehicleForm from '@/components/forms/VehicleForm.vue'
 import { ApiError } from '@/services/apiClient'
 import { vehiclesService } from '@/services/vehiclesService'
@@ -143,69 +140,96 @@ onMounted(loadVehicles)
       </VaButton>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
-    <BaseAlert
+    </VaAlert>
+    <VaAlert
       v-if="success"
-      variant="success"
+      color="success"
+      role="status"
     >
       {{ success }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhum veiculo encontrado."
+          hoverable
+          :items="vehicles"
+          items-track-by="id"
           :loading="loading"
-          :rows="vehicles"
+          no-data-html="Nenhum veiculo encontrado."
         >
-          <template #row="{ row }">
-            <td>{{ vehicleFrom(row).plate }}</td>
-            <td>{{ vehicleFrom(row).plate_normalized }}</td>
-            <td>{{ vehicleFrom(row).fleet_code ?? '-' }}</td>
-            <td>{{ vehicleFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-            <td>
-              <div class="row-actions">
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  type="button"
-                  @click="openEdit(vehicleFrom(row))"
-                >
-                  Editar
-                </VaButton>
-                <VaButton
-                  class="base-button"
-                  color="danger"
-                  type="button"
-                  @click="deleteVehicle(vehicleFrom(row))"
-                >
-                  Remover
-                </VaButton>
-              </div>
-            </td>
+          <template #cell(plate)="{ rowData }">
+            {{ vehicleFrom(rowData).plate }}
           </template>
-        </BaseTable>
+          <template #cell(plate_normalized)="{ rowData }">
+            {{ vehicleFrom(rowData).plate_normalized }}
+          </template>
+          <template #cell(fleet_code)="{ rowData }">
+            {{ vehicleFrom(rowData).fleet_code ?? '-' }}
+          </template>
+          <template #cell(is_active)="{ rowData }">
+            {{ vehicleFrom(rowData).is_active ? 'Ativo' : 'Inativo' }}
+          </template>
+          <template #cell(actions)="{ rowData }">
+            <div class="row-actions">
+              <VaButton
+                class="base-button"
+                color="secondary"
+                type="button"
+                @click="openEdit(vehicleFrom(rowData))"
+              >
+                Editar
+              </VaButton>
+              <VaButton
+                class="base-button"
+                color="danger"
+                type="button"
+                @click="deleteVehicle(vehicleFrom(rowData))"
+              >
+                Remover
+              </VaButton>
+            </div>
+          </template>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
 
-    <BaseModal
-      :open="modalOpen"
-      :title="editingVehicle ? 'Editar veiculo' : 'Novo veiculo'"
-      @close="closeModal"
+    <VaModal
+      :model-value="modalOpen"
+      hide-default-actions
+      max-width="760px"
+      mobile-fullscreen
+      @update:model-value="!$event && closeModal()"
     >
-      <VehicleForm
-        v-model="form"
-        :errors="fieldErrors"
-        :submitting="submitting"
-        @cancel="closeModal"
-        @submit="saveVehicle"
-      />
-    </BaseModal>
+      <template #header>
+        <div class="base-modal__header">
+          <h2>{{ editingVehicle ? 'Editar veiculo' : 'Novo veiculo' }}</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closeModal"
+          />
+        </div>
+      </template>
+
+      <div class="base-modal__body">
+        <VehicleForm
+          v-model="form"
+          :errors="fieldErrors"
+          :submitting="submitting"
+          @cancel="closeModal"
+          @submit="saveVehicle"
+        />
+      </div>
+    </VaModal>
   </section>
 </template>

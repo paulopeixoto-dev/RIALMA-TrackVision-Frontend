@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import BaseAlert from '@/components/base/BaseAlert.vue'
 import { ApiError } from '@/services/apiClient'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -95,12 +94,13 @@ async function submitLogin(): Promise<void> {
               Entre com seu usuario autorizado.
             </p>
 
-            <BaseAlert
+            <VaAlert
               v-if="formError"
-              variant="error"
+              color="danger"
+              role="status"
             >
               {{ formError }}
-            </BaseAlert>
+            </VaAlert>
 
             <VaInput
               class="base-field"

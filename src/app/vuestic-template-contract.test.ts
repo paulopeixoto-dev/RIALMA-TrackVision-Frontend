@@ -9,8 +9,6 @@ const checkedRoots = [
   'src/components/navigation',
 ]
 
-const forbiddenBaseComponents = ['BaseButton', 'BaseInput', 'BaseSelect']
-
 function vueFiles(path: string): string[] {
   return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
     const fullPath = join(path, entry.name)
@@ -24,15 +22,14 @@ function vueFiles(path: string): string[] {
 }
 
 describe('Vuestic template contract', () => {
-  it('keeps screens and forms using Vuestic components directly for native controls', () => {
+  it('keeps screens, layouts, forms and navigation using Vuestic components directly', () => {
     const violations = checkedRoots
       .flatMap((root) => vueFiles(root))
       .flatMap((file) => {
         const source = readFileSync(file, 'utf8')
 
-        return forbiddenBaseComponents
-          .filter((component) => source.includes(component))
-          .map((component) => `${file}: ${component}`)
+        return [...source.matchAll(/\bBase[A-Z][A-Za-z]+/g)]
+          .map(([component]) => `${file}: ${component}`)
       })
 
     expect(violations).toEqual([])

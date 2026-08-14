@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import LocationForm from '@/components/forms/LocationForm.vue'
 import { ApiError } from '@/services/apiClient'
 import { locationsService } from '@/services/locationsService'
@@ -129,68 +126,93 @@ onMounted(loadLocations)
       </VaButton>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
-    <BaseAlert
+    </VaAlert>
+    <VaAlert
       v-if="success"
-      variant="success"
+      color="success"
+      role="status"
     >
       {{ success }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhum local encontrado."
+          hoverable
+          :items="locations"
+          items-track-by="id"
           :loading="loading"
-          :rows="locations"
+          no-data-html="Nenhum local encontrado."
         >
-          <template #row="{ row }">
-            <td>{{ locationFrom(row).name }}</td>
-            <td>{{ locationFrom(row).description ?? '-' }}</td>
-            <td>{{ locationFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-            <td>
-              <div class="row-actions">
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  type="button"
-                  @click="openEdit(locationFrom(row))"
-                >
-                  Editar
-                </VaButton>
-                <VaButton
-                  class="base-button"
-                  color="danger"
-                  type="button"
-                  @click="deleteLocation(locationFrom(row))"
-                >
-                  Remover
-                </VaButton>
-              </div>
-            </td>
+          <template #cell(name)="{ rowData }">
+            {{ locationFrom(rowData).name }}
           </template>
-        </BaseTable>
+          <template #cell(description)="{ rowData }">
+            {{ locationFrom(rowData).description ?? '-' }}
+          </template>
+          <template #cell(is_active)="{ rowData }">
+            {{ locationFrom(rowData).is_active ? 'Ativo' : 'Inativo' }}
+          </template>
+          <template #cell(actions)="{ rowData }">
+            <div class="row-actions">
+              <VaButton
+                class="base-button"
+                color="secondary"
+                type="button"
+                @click="openEdit(locationFrom(rowData))"
+              >
+                Editar
+              </VaButton>
+              <VaButton
+                class="base-button"
+                color="danger"
+                type="button"
+                @click="deleteLocation(locationFrom(rowData))"
+              >
+                Remover
+              </VaButton>
+            </div>
+          </template>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
 
-    <BaseModal
-      :open="modalOpen"
-      :title="editingLocation ? 'Editar local' : 'Novo local'"
-      @close="closeModal"
+    <VaModal
+      :model-value="modalOpen"
+      hide-default-actions
+      max-width="760px"
+      mobile-fullscreen
+      @update:model-value="!$event && closeModal()"
     >
-      <LocationForm
-        v-model="form"
-        :errors="fieldErrors"
-        :submitting="submitting"
-        @cancel="closeModal"
-        @submit="saveLocation"
-      />
-    </BaseModal>
+      <template #header>
+        <div class="base-modal__header">
+          <h2>{{ editingLocation ? 'Editar local' : 'Novo local' }}</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closeModal"
+          />
+        </div>
+      </template>
+
+      <div class="base-modal__body">
+        <LocationForm
+          v-model="form"
+          :errors="fieldErrors"
+          :submitting="submitting"
+          @cancel="closeModal"
+          @submit="saveLocation"
+        />
+      </div>
+    </VaModal>
   </section>
 </template>

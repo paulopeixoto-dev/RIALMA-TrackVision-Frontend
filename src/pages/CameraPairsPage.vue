@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseModal from '@/components/base/BaseModal.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import CameraPairForm from '@/components/forms/CameraPairForm.vue'
 import { ApiError } from '@/services/apiClient'
 import { cameraPairsService } from '@/services/cameraPairsService'
@@ -157,73 +154,102 @@ onMounted(loadData)
       </VaButton>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
-    <BaseAlert
+    </VaAlert>
+    <VaAlert
       v-if="success"
-      variant="success"
+      color="success"
+      role="status"
     >
       {{ success }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhum par encontrado."
+          hoverable
+          :items="cameraPairs"
+          items-track-by="id"
           :loading="loading"
-          :rows="cameraPairs"
+          no-data-html="Nenhum par encontrado."
         >
-          <template #row="{ row }">
-            <td>{{ pairFrom(row).name }}</td>
-            <td>{{ pairFrom(row).lpr_camera?.name ?? '-' }}</td>
-            <td>{{ pairFrom(row).support_camera?.name ?? '-' }}</td>
-            <td>{{ pairFrom(row).direction }}</td>
-            <td>{{ pairFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-            <td>
-              <div class="row-actions">
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  type="button"
-                  @click="openEdit(pairFrom(row))"
-                >
-                  Editar
-                </VaButton>
-                <VaButton
-                  class="base-button"
-                  color="danger"
-                  type="button"
-                  @click="deletePair(pairFrom(row))"
-                >
-                  Remover
-                </VaButton>
-              </div>
-            </td>
+          <template #cell(name)="{ rowData }">
+            {{ pairFrom(rowData).name }}
           </template>
-        </BaseTable>
+          <template #cell(lpr_camera)="{ rowData }">
+            {{ pairFrom(rowData).lpr_camera?.name ?? '-' }}
+          </template>
+          <template #cell(support_camera)="{ rowData }">
+            {{ pairFrom(rowData).support_camera?.name ?? '-' }}
+          </template>
+          <template #cell(direction)="{ rowData }">
+            {{ pairFrom(rowData).direction }}
+          </template>
+          <template #cell(is_active)="{ rowData }">
+            {{ pairFrom(rowData).is_active ? 'Ativo' : 'Inativo' }}
+          </template>
+          <template #cell(actions)="{ rowData }">
+            <div class="row-actions">
+              <VaButton
+                class="base-button"
+                color="secondary"
+                type="button"
+                @click="openEdit(pairFrom(rowData))"
+              >
+                Editar
+              </VaButton>
+              <VaButton
+                class="base-button"
+                color="danger"
+                type="button"
+                @click="deletePair(pairFrom(rowData))"
+              >
+                Remover
+              </VaButton>
+            </div>
+          </template>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
 
-    <BaseModal
-      :open="modalOpen"
-      :title="editingPair ? 'Editar par' : 'Novo par'"
-      @close="closeModal"
+    <VaModal
+      :model-value="modalOpen"
+      hide-default-actions
+      max-width="760px"
+      mobile-fullscreen
+      @update:model-value="!$event && closeModal()"
     >
-      <CameraPairForm
-        v-model="form"
-        :cameras="cameras"
-        :edge-nodes="edgeNodes"
-        :errors="fieldErrors"
-        :locations="locations"
-        :submitting="submitting"
-        @cancel="closeModal"
-        @submit="savePair"
-      />
-    </BaseModal>
+      <template #header>
+        <div class="base-modal__header">
+          <h2>{{ editingPair ? 'Editar par' : 'Novo par' }}</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closeModal"
+          />
+        </div>
+      </template>
+
+      <div class="base-modal__body">
+        <CameraPairForm
+          v-model="form"
+          :cameras="cameras"
+          :edge-nodes="edgeNodes"
+          :errors="fieldErrors"
+          :locations="locations"
+          :submitting="submitting"
+          @cancel="closeModal"
+          @submit="savePair"
+        />
+      </div>
+    </VaModal>
   </section>
 </template>

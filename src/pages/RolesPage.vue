@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import { rolesService } from '@/services/rolesService'
 import type { Role } from '@/types/admin'
 
@@ -42,26 +40,32 @@ onMounted(loadRoles)
       </div>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhuma role encontrada."
+          hoverable
+          :items="roles"
+          items-track-by="id"
           :loading="loading"
-          :rows="roles"
+          no-data-html="Nenhuma role encontrada."
         >
-          <template #row="{ row }">
-            <td>{{ (row as Role).name }}</td>
-            <td>{{ (row as Role).permissions?.join(', ') || '-' }}</td>
+          <template #cell(name)="{ rowData }">
+            {{ (rowData as Role).name }}
           </template>
-        </BaseTable>
+          <template #cell(permissions)="{ rowData }">
+            {{ (rowData as Role).permissions?.join(', ') || '-' }}
+          </template>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
   </section>

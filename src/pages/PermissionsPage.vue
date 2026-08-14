@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import { permissionsService } from '@/services/permissionsService'
 import type { Permission } from '@/types/admin'
 
@@ -41,25 +39,29 @@ onMounted(loadPermissions)
       </div>
     </header>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
+    </VaAlert>
 
     <VaCard class="content-panel">
       <VaCardContent class="content-panel__body">
-        <BaseTable
+        <VaDataTable
+          class="base-table"
           :columns="columns"
-          empty-text="Nenhuma permissao encontrada."
+          hoverable
+          :items="permissions"
+          items-track-by="id"
           :loading="loading"
-          :rows="permissions"
+          no-data-html="Nenhuma permissao encontrada."
         >
-          <template #row="{ row }">
-            <td>{{ (row as Permission).name }}</td>
+          <template #cell(name)="{ rowData }">
+            {{ (rowData as Permission).name }}
           </template>
-        </BaseTable>
+        </VaDataTable>
       </VaCardContent>
     </VaCard>
   </section>

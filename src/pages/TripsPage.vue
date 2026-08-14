@@ -1,7 +1,5 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
-import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseTable from '@/components/base/BaseTable.vue'
 import { mediaAssetsService } from '@/services/mediaAssetsService'
 import { reportsService } from '@/services/reportsService'
 import { tripsService } from '@/services/tripsService'
@@ -352,48 +350,63 @@ onBeforeUnmount(() => {
       </VaCardContent>
     </VaCard>
 
-    <BaseAlert
+    <VaAlert
       v-if="error"
-      variant="error"
+      color="danger"
+      role="status"
     >
       {{ error }}
-    </BaseAlert>
-    <BaseAlert
+    </VaAlert>
+    <VaAlert
       v-if="success"
-      variant="success"
+      color="success"
+      role="status"
     >
       {{ success }}
-    </BaseAlert>
+    </VaAlert>
 
     <div class="trips-layout">
       <VaCard class="content-panel">
         <VaCardContent class="content-panel__body">
-          <BaseTable
+          <VaDataTable
+            class="base-table"
             :columns="columns"
-            empty-text="Nenhuma viagem encontrada."
+            hoverable
+            :items="trips"
+            items-track-by="id"
             :loading="loading"
-            :rows="trips"
+            no-data-html="Nenhuma viagem encontrada."
           >
-            <template #row="{ row }">
-              <td>{{ tripFrom(row).vehicle?.plate ?? '-' }}</td>
-              <td>{{ tripFrom(row).location?.name ?? '-' }}</td>
-              <td>{{ statusLabel(tripFrom(row).status) }}</td>
-              <td>{{ formatDate(tripFrom(row).opened_at) }}</td>
-              <td>{{ formatDate(tripFrom(row).closed_at) }}</td>
-              <td>{{ loadLabel(tripFrom(row).current_load_status) }}</td>
-              <td>
-                <VaButton
-                  class="base-button"
-                  color="secondary"
-                  data-test="select-trip"
-                  type="button"
-                  @click="selectTrip(tripFrom(row))"
-                >
-                  Revisar
-                </VaButton>
-              </td>
+            <template #cell(plate)="{ rowData }">
+              {{ tripFrom(rowData).vehicle?.plate ?? '-' }}
             </template>
-          </BaseTable>
+            <template #cell(location)="{ rowData }">
+              {{ tripFrom(rowData).location?.name ?? '-' }}
+            </template>
+            <template #cell(status)="{ rowData }">
+              {{ statusLabel(tripFrom(rowData).status) }}
+            </template>
+            <template #cell(opened_at)="{ rowData }">
+              {{ formatDate(tripFrom(rowData).opened_at) }}
+            </template>
+            <template #cell(closed_at)="{ rowData }">
+              {{ formatDate(tripFrom(rowData).closed_at) }}
+            </template>
+            <template #cell(load_status)="{ rowData }">
+              {{ loadLabel(tripFrom(rowData).current_load_status) }}
+            </template>
+            <template #cell(actions)="{ rowData }">
+              <VaButton
+                class="base-button"
+                color="secondary"
+                data-test="select-trip"
+                type="button"
+                @click="selectTrip(tripFrom(rowData))"
+              >
+                Revisar
+              </VaButton>
+            </template>
+          </VaDataTable>
 
           <div
             v-if="lastPage > 1"
