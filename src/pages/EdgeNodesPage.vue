@@ -150,38 +150,42 @@ onMounted(loadData)
       {{ success }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhum edge node encontrado."
-      :loading="loading"
-      :rows="edgeNodes"
-    >
-      <template #row="{ row }">
-        <td>{{ edgeNodeFrom(row).name }}</td>
-        <td>{{ edgeNodeFrom(row).location?.name ?? '-' }}</td>
-        <td>{{ edgeNodeFrom(row).status }}</td>
-        <td>{{ edgeNodeFrom(row).last_seen_at ?? '-' }}</td>
-        <td>{{ edgeNodeFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-        <td>
-          <div class="row-actions">
-            <BaseButton
-              type="button"
-              variant="secondary"
-              @click="openEdit(edgeNodeFrom(row))"
-            >
-              Editar
-            </BaseButton>
-            <BaseButton
-              type="button"
-              variant="danger"
-              @click="deleteEdgeNode(edgeNodeFrom(row))"
-            >
-              Remover
-            </BaseButton>
-          </div>
-        </td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhum edge node encontrado."
+          :loading="loading"
+          :rows="edgeNodes"
+        >
+          <template #row="{ row }">
+            <td>{{ edgeNodeFrom(row).name }}</td>
+            <td>{{ edgeNodeFrom(row).location?.name ?? '-' }}</td>
+            <td>{{ edgeNodeFrom(row).status }}</td>
+            <td>{{ edgeNodeFrom(row).last_seen_at ?? '-' }}</td>
+            <td>{{ edgeNodeFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
+            <td>
+              <div class="row-actions">
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  @click="openEdit(edgeNodeFrom(row))"
+                >
+                  Editar
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="danger"
+                  @click="deleteEdgeNode(edgeNodeFrom(row))"
+                >
+                  Remover
+                </BaseButton>
+              </div>
+            </td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
 
     <BaseModal
       :open="modalOpen"

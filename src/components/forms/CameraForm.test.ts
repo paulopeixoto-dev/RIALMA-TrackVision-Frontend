@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import CameraForm from './CameraForm.vue'
 
 describe('CameraForm', () => {
@@ -33,6 +34,7 @@ describe('CameraForm', () => {
         errors: {},
         submitting: false,
       },
+      global: { plugins: [createVuesticTestPlugin()] },
     })
 
     expect(wrapper.text()).not.toContain('camera-secret')

@@ -4,6 +4,7 @@ import UserForm from '@/components/forms/UserForm.vue'
 import UserPasswordForm from '@/components/forms/UserPasswordForm.vue'
 import { rolesService } from '@/services/rolesService'
 import { usersService } from '@/services/usersService'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import UsersPage from './UsersPage.vue'
 
 vi.mock('@/services/usersService', () => ({
@@ -44,7 +45,10 @@ describe('UsersPage', () => {
   })
 
   it('renders users and loads roles available for assignment', async () => {
-    const wrapper = mount(UsersPage, { attachTo: document.body })
+    const wrapper = mount(UsersPage, {
+      attachTo: document.body,
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
     await flushPromises()
 
     expect(wrapper.text()).toContain('Paulo')
@@ -62,7 +66,10 @@ describe('UsersPage', () => {
       roles: ['operator'],
     })
 
-    const wrapper = mount(UsersPage, { attachTo: document.body })
+    const wrapper = mount(UsersPage, {
+      attachTo: document.body,
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
     await flushPromises()
 
     await wrapper.findAll('button').find((button) => button.text() === 'Novo usuario')?.trigger('click')
@@ -94,7 +101,10 @@ describe('UsersPage', () => {
     vi.mocked(usersService.resetPassword).mockResolvedValue(user)
     vi.mocked(usersService.deactivate).mockResolvedValue()
 
-    const wrapper = mount(UsersPage, { attachTo: document.body })
+    const wrapper = mount(UsersPage, {
+      attachTo: document.body,
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
     await flushPromises()
 
     await wrapper.findAll('button').find((button) => button.text() === 'Editar')?.trigger('click')

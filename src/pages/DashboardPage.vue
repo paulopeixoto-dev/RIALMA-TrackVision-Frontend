@@ -22,20 +22,22 @@ const modules = computed(() => [
       </div>
     </header>
 
-    <div class="content-panel">
-      <p class="muted">
-        Acesse os cadastros administrativos permitidos para sua sessao.
-      </p>
-      <div class="module-grid">
-        <RouterLink
-          v-for="module in modules"
-          :key="module.route"
-          class="module-link"
-          :to="{ name: module.route }"
-        >
-          {{ module.label }}
-        </RouterLink>
-      </div>
-    </div>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <p class="muted">
+          Acesse os cadastros administrativos permitidos para sua sessao.
+        </p>
+        <div class="module-grid">
+          <RouterLink
+            v-for="module in modules"
+            :key="module.route"
+            class="module-link"
+            :to="{ name: module.route }"
+          >
+            {{ module.label }}
+          </RouterLink>
+        </div>
+      </VaCardContent>
+    </VaCard>
   </section>
 </template>

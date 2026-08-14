@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import type { UserFormInput } from '@/types/admin'
 import UserForm from './UserForm.vue'
 
@@ -28,6 +29,7 @@ describe('UserForm', () => {
         errors: {},
         submitting: false,
       },
+      global: { plugins: [createVuesticTestPlugin()] },
     })
 
     await wrapper.find('input[name="name"]').setValue('Paulo')
@@ -38,7 +40,10 @@ describe('UserForm', () => {
     await syncModel()
     await wrapper.find('input[name="password_confirmation"]').setValue('secret123')
     await syncModel()
-    await wrapper.find('input[value="operator"]').setValue(true)
+    const operatorCheckbox = wrapper
+      .findAllComponents({ name: 'VaCheckbox' })
+      .find((checkbox) => checkbox.props('label') === 'operator')
+    operatorCheckbox?.vm.$emit('update:modelValue', true)
 
     const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as Record<string, unknown>
     expect(emitted).toMatchObject({
@@ -65,9 +70,13 @@ describe('UserForm', () => {
         errors: {},
         submitting: false,
       },
+      global: { plugins: [createVuesticTestPlugin()] },
     })
 
     expect(wrapper.find('input[name="password"]').exists()).toBe(false)
-    expect(wrapper.find<HTMLInputElement>('input[value="super_admin"]').element.checked).toBe(true)
+    const superAdminCheckbox = wrapper
+      .findAllComponents({ name: 'VaCheckbox' })
+      .find((checkbox) => checkbox.props('label') === 'super_admin')
+    expect(superAdminCheckbox?.props('modelValue')).toBe(true)
   })
 })

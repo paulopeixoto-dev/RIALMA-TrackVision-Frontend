@@ -154,37 +154,41 @@ onMounted(loadVehicles)
       {{ success }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhum veiculo encontrado."
-      :loading="loading"
-      :rows="vehicles"
-    >
-      <template #row="{ row }">
-        <td>{{ vehicleFrom(row).plate }}</td>
-        <td>{{ vehicleFrom(row).plate_normalized }}</td>
-        <td>{{ vehicleFrom(row).fleet_code ?? '-' }}</td>
-        <td>{{ vehicleFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-        <td>
-          <div class="row-actions">
-            <BaseButton
-              type="button"
-              variant="secondary"
-              @click="openEdit(vehicleFrom(row))"
-            >
-              Editar
-            </BaseButton>
-            <BaseButton
-              type="button"
-              variant="danger"
-              @click="deleteVehicle(vehicleFrom(row))"
-            >
-              Remover
-            </BaseButton>
-          </div>
-        </td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhum veiculo encontrado."
+          :loading="loading"
+          :rows="vehicles"
+        >
+          <template #row="{ row }">
+            <td>{{ vehicleFrom(row).plate }}</td>
+            <td>{{ vehicleFrom(row).plate_normalized }}</td>
+            <td>{{ vehicleFrom(row).fleet_code ?? '-' }}</td>
+            <td>{{ vehicleFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
+            <td>
+              <div class="row-actions">
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  @click="openEdit(vehicleFrom(row))"
+                >
+                  Editar
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="danger"
+                  @click="deleteVehicle(vehicleFrom(row))"
+                >
+                  Remover
+                </BaseButton>
+              </div>
+            </td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
 
     <BaseModal
       :open="modalOpen"

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import VehiclesPage from './VehiclesPage.vue'
 
 vi.mock('@/services/vehiclesService', () => ({
@@ -23,7 +24,9 @@ vi.mock('@/services/vehiclesService', () => ({
 
 describe('VehiclesPage', () => {
   it('renders paginated vehicle data', async () => {
-    const wrapper = mount(VehiclesPage)
+    const wrapper = mount(VehiclesPage, {
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(wrapper.text()).toContain('ABC-1D23')

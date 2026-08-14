@@ -188,39 +188,43 @@ onMounted(loadData)
       {{ success }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhuma camera encontrada."
-      :loading="loading"
-      :rows="cameras"
-    >
-      <template #row="{ row }">
-        <td>{{ cameraFrom(row).name }}</td>
-        <td>{{ cameraFrom(row).type }}</td>
-        <td>{{ cameraFrom(row).location?.name ?? '-' }}</td>
-        <td>{{ cameraFrom(row).edge_node?.name ?? '-' }}</td>
-        <td>{{ cameraFrom(row).host }}:{{ cameraFrom(row).port }}</td>
-        <td>{{ cameraFrom(row).is_active ? 'Ativa' : 'Inativa' }}</td>
-        <td>
-          <div class="row-actions">
-            <BaseButton
-              type="button"
-              variant="secondary"
-              @click="openEdit(cameraFrom(row))"
-            >
-              Editar
-            </BaseButton>
-            <BaseButton
-              type="button"
-              variant="danger"
-              @click="deleteCamera(cameraFrom(row))"
-            >
-              Remover
-            </BaseButton>
-          </div>
-        </td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhuma camera encontrada."
+          :loading="loading"
+          :rows="cameras"
+        >
+          <template #row="{ row }">
+            <td>{{ cameraFrom(row).name }}</td>
+            <td>{{ cameraFrom(row).type }}</td>
+            <td>{{ cameraFrom(row).location?.name ?? '-' }}</td>
+            <td>{{ cameraFrom(row).edge_node?.name ?? '-' }}</td>
+            <td>{{ cameraFrom(row).host }}:{{ cameraFrom(row).port }}</td>
+            <td>{{ cameraFrom(row).is_active ? 'Ativa' : 'Inativa' }}</td>
+            <td>
+              <div class="row-actions">
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  @click="openEdit(cameraFrom(row))"
+                >
+                  Editar
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="danger"
+                  @click="deleteCamera(cameraFrom(row))"
+                >
+                  Remover
+                </BaseButton>
+              </div>
+            </td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
 
     <BaseModal
       :open="modalOpen"

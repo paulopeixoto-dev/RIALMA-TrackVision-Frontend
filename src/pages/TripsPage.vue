@@ -287,47 +287,51 @@ onBeforeUnmount(() => {
       </div>
     </header>
 
-    <div
-      class="filters-row"
-      data-test="trip-filters"
-    >
-      <BaseSelect
-        v-model="filters.status"
-        label="Status"
-        :options="statusOptions"
-      />
-      <BaseInput
-        v-model="filters.plate"
-        label="Placa"
-        placeholder="ABC-1D23"
-      />
-      <BaseSelect
-        v-model="filters.load_status"
-        label="Carga"
-        :options="loadOptions"
-      />
-      <BaseInput
-        v-model="filters.date_from"
-        label="De"
-        type="date"
-      />
-      <BaseInput
-        v-model="filters.date_to"
-        label="Ate"
-        type="date"
-      />
-      <BaseSelect
-        v-model="filters.direction"
-        label="Direcao"
-        :options="directionOptions"
-      />
-      <BaseButton
-        type="button"
-        @click="applyFilters"
-      >
-        Filtrar
-      </BaseButton>
-    </div>
+    <VaCard class="content-panel">
+      <VaCardContent>
+        <div
+          class="filters-row"
+          data-test="trip-filters"
+        >
+          <BaseSelect
+            v-model="filters.status"
+            label="Status"
+            :options="statusOptions"
+          />
+          <BaseInput
+            v-model="filters.plate"
+            label="Placa"
+            placeholder="ABC-1D23"
+          />
+          <BaseSelect
+            v-model="filters.load_status"
+            label="Carga"
+            :options="loadOptions"
+          />
+          <BaseInput
+            v-model="filters.date_from"
+            label="De"
+            type="date"
+          />
+          <BaseInput
+            v-model="filters.date_to"
+            label="Ate"
+            type="date"
+          />
+          <BaseSelect
+            v-model="filters.direction"
+            label="Direcao"
+            :options="directionOptions"
+          />
+          <BaseButton
+            type="button"
+            @click="applyFilters"
+          >
+            Filtrar
+          </BaseButton>
+        </div>
+      </VaCardContent>
+    </VaCard>
 
     <BaseAlert
       v-if="error"
@@ -343,71 +347,76 @@ onBeforeUnmount(() => {
     </BaseAlert>
 
     <div class="trips-layout">
-      <BaseTable
-        :columns="columns"
-        empty-text="Nenhuma viagem encontrada."
-        :loading="loading"
-        :rows="trips"
-      >
-        <template #row="{ row }">
-          <td>{{ tripFrom(row).vehicle?.plate ?? '-' }}</td>
-          <td>{{ tripFrom(row).location?.name ?? '-' }}</td>
-          <td>{{ statusLabel(tripFrom(row).status) }}</td>
-          <td>{{ formatDate(tripFrom(row).opened_at) }}</td>
-          <td>{{ formatDate(tripFrom(row).closed_at) }}</td>
-          <td>{{ loadLabel(tripFrom(row).current_load_status) }}</td>
-          <td>
+      <VaCard class="content-panel">
+        <VaCardContent class="content-panel__body">
+          <BaseTable
+            :columns="columns"
+            empty-text="Nenhuma viagem encontrada."
+            :loading="loading"
+            :rows="trips"
+          >
+            <template #row="{ row }">
+              <td>{{ tripFrom(row).vehicle?.plate ?? '-' }}</td>
+              <td>{{ tripFrom(row).location?.name ?? '-' }}</td>
+              <td>{{ statusLabel(tripFrom(row).status) }}</td>
+              <td>{{ formatDate(tripFrom(row).opened_at) }}</td>
+              <td>{{ formatDate(tripFrom(row).closed_at) }}</td>
+              <td>{{ loadLabel(tripFrom(row).current_load_status) }}</td>
+              <td>
+                <BaseButton
+                  data-test="select-trip"
+                  type="button"
+                  variant="secondary"
+                  @click="selectTrip(tripFrom(row))"
+                >
+                  Revisar
+                </BaseButton>
+              </td>
+            </template>
+          </BaseTable>
+
+          <div
+            v-if="lastPage > 1"
+            class="pagination-row"
+          >
             <BaseButton
-              data-test="select-trip"
+              data-test="previous-page"
               type="button"
               variant="secondary"
-              @click="selectTrip(tripFrom(row))"
+              :disabled="loading || currentPage === 1"
+              @click="previousPage"
             >
-              Revisar
+              Anterior
             </BaseButton>
-          </td>
-        </template>
-      </BaseTable>
+            <span class="muted">Pagina {{ currentPage }} de {{ lastPage }}</span>
+            <BaseButton
+              data-test="next-page"
+              type="button"
+              variant="secondary"
+              :disabled="loading || currentPage === lastPage"
+              @click="nextPage"
+            >
+              Proxima
+            </BaseButton>
+          </div>
+        </VaCardContent>
+      </VaCard>
 
-      <div
-        v-if="lastPage > 1"
-        class="pagination-row"
-      >
-        <BaseButton
-          data-test="previous-page"
-          type="button"
-          variant="secondary"
-          :disabled="loading || currentPage === 1"
-          @click="previousPage"
-        >
-          Anterior
-        </BaseButton>
-        <span class="muted">Pagina {{ currentPage }} de {{ lastPage }}</span>
-        <BaseButton
-          data-test="next-page"
-          type="button"
-          variant="secondary"
-          :disabled="loading || currentPage === lastPage"
-          @click="nextPage"
-        >
-          Proxima
-        </BaseButton>
-      </div>
-
-      <aside class="trip-detail">
-        <p
-          v-if="detailLoading"
-          class="muted"
-        >
-          Carregando detalhes...
-        </p>
-        <p
-          v-else-if="!selectedTrip"
-          class="muted"
-        >
-          Selecione uma viagem para revisar imagens e carga.
-        </p>
-        <template v-else>
+      <VaCard class="trip-detail">
+        <VaCardContent class="trip-detail__body">
+          <p
+            v-if="detailLoading"
+            class="muted"
+          >
+            Carregando detalhes...
+          </p>
+          <p
+            v-else-if="!selectedTrip"
+            class="muted"
+          >
+            Selecione uma viagem para revisar imagens e carga.
+          </p>
+          <template v-else>
           <h2>{{ selectedTrip.vehicle?.plate ?? 'Sem placa' }}</h2>
           <p class="muted">
             {{ selectedTrip.location?.name ?? '-' }} &middot; {{ statusLabel(selectedTrip.status) }}
@@ -497,7 +506,8 @@ onBeforeUnmount(() => {
             </section>
           </article>
         </template>
-      </aside>
+        </VaCardContent>
+      </VaCard>
     </div>
   </section>
 </template>

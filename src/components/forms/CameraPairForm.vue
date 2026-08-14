@@ -108,15 +108,12 @@ function updateField<K extends keyof CameraPairInput>(key: K, value: CameraPairI
       ]"
       @update:model-value="updateField('direction', $event as CameraPairInput['direction'])"
     />
-    <label class="checkbox-field">
-      <input
-        :checked="modelValue.is_active"
-        name="is_active"
-        type="checkbox"
-        @change="updateField('is_active', ($event.target as HTMLInputElement).checked)"
-      >
-      <span>Ativo</span>
-    </label>
+    <VaCheckbox
+      :model-value="modelValue.is_active"
+      label="Ativo"
+      name="is_active"
+      @update:model-value="updateField('is_active', Boolean($event))"
+    />
     <div class="form-actions">
       <BaseButton
         :loading="submitting"

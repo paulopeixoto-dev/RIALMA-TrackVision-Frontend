@@ -48,15 +48,19 @@ onMounted(loadPermissions)
       {{ error }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhuma permissao encontrada."
-      :loading="loading"
-      :rows="permissions"
-    >
-      <template #row="{ row }">
-        <td>{{ (row as Permission).name }}</td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhuma permissao encontrada."
+          :loading="loading"
+          :rows="permissions"
+        >
+          <template #row="{ row }">
+            <td>{{ (row as Permission).name }}</td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
   </section>
 </template>
