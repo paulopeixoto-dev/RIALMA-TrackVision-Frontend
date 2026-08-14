@@ -9,6 +9,27 @@ export interface Role {
   permissions?: string[]
 }
 
+export interface UserInput {
+  name: string
+  email: string
+  is_active: boolean
+  roles: string[]
+}
+
+export interface CreateUserInput extends UserInput {
+  password: string
+  password_confirmation: string
+}
+
+export type UpdateUserInput = UserInput
+
+export type UserFormInput = UserInput & Partial<Pick<CreateUserInput, 'password' | 'password_confirmation'>>
+
+export interface UserPasswordInput {
+  password: string
+  password_confirmation: string
+}
+
 export interface Vehicle {
   id: number
   uuid: string

@@ -294,6 +294,21 @@ button:disabled,
   font-weight: 700;
 }
 
+.checkbox-group {
+  display: grid;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+}
+
+.checkbox-group legend {
+  padding: 0 4px;
+  color: var(--color-muted);
+  font-size: 13px;
+  font-weight: 700;
+}
+
 .form-actions,
 .row-actions {
   display: flex;
