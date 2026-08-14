@@ -14,6 +14,14 @@ import { computed, type Component } from 'vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
+const props = withDefaults(defineProps<{ minimized?: boolean }>(), {
+  minimized: false,
+})
+
+const emit = defineEmits<{
+  'toggle-minimized': []
+  navigate: []
+}>()
 
 interface NavigationItem {
   label: string
@@ -39,7 +47,11 @@ const visibleItems = computed(() => navigationItems.filter((item) => authStore.c
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside
+    class="sidebar"
+    :class="{ 'sidebar--minimized': props.minimized }"
+    data-test="admin-sidebar"
+  >
     <RouterLink
       class="sidebar__brand"
       :to="{ name: 'dashboard' }"
@@ -48,16 +60,29 @@ const visibleItems = computed(() => navigationItems.filter((item) => authStore.c
       <strong>TrackVision</strong>
     </RouterLink>
 
+    <button
+      class="sidebar__minimize"
+      data-test="sidebar-minimize"
+      type="button"
+      @click="emit('toggle-minimized')"
+    >
+      {{ props.minimized ? 'Expandir' : 'Recolher' }}
+    </button>
+
     <nav
       class="sidebar__nav"
       aria-label="Principal"
     >
+      <p class="sidebar__group">
+        Operacao
+      </p>
       <RouterLink
         v-for="item in visibleItems"
         :key="item.route"
         class="sidebar__link"
         active-class="sidebar__link--active"
         :to="{ name: item.route }"
+        @click="emit('navigate')"
       >
         <component
           :is="item.icon"

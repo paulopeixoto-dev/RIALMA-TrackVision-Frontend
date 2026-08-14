@@ -33,4 +33,29 @@ describe('TheSidebar', () => {
     expect(wrapper.text()).toContain('Viagens')
     expect(wrapper.text()).not.toContain('Veiculos')
   })
+
+  it('emits toggle and marks the minimized state', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['captures.view']
+
+    const router = createRouter({
+      history: createWebHistory(),
+      routes: [
+        { path: '/', redirect: '/dashboard' },
+        { path: '/dashboard', name: 'dashboard', component: { template: '<div />' } },
+        { path: '/trips', name: 'trips', component: { template: '<div />' } },
+      ],
+    })
+
+    const wrapper = mount(TheSidebar, {
+      props: { minimized: true },
+      global: {
+        plugins: [router],
+      },
+    })
+
+    expect(wrapper.get('[data-test="admin-sidebar"]').classes()).toContain('sidebar--minimized')
+    await wrapper.get('[data-test="sidebar-minimize"]').trigger('click')
+    expect(wrapper.emitted('toggle-minimized')).toHaveLength(1)
+  })
 })
