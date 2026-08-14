@@ -20,7 +20,7 @@ describe('TheTopbar', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
     const authStore = useAuthStore()
-    authStore.user = { id: 1, name: 'Paulo Peixoto', email: 'admin@trackvision.local', permissions: [] }
+    authStore.user = { id: 1, name: 'Paulo Peixoto', email: 'admin@trackvision.local', is_active: true, permissions: [] }
   })
 
   it('shows operational context and emits sidebar toggles', async () => {

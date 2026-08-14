@@ -33,7 +33,7 @@ describe('AdminLayout', () => {
     })
     setActivePinia(createPinia())
     const authStore = useAuthStore()
-    authStore.user = { id: 1, name: 'Paulo Peixoto', email: 'admin@trackvision.local', permissions: [] }
+    authStore.user = { id: 1, name: 'Paulo Peixoto', email: 'admin@trackvision.local', is_active: true, permissions: [] }
     authStore.permissions = ['users.manage', 'vehicles.manage', 'captures.view', 'cameras.manage', 'permissions.manage']
   })
 
