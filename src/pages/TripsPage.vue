@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
-import BaseSelect from '@/components/base/BaseSelect.vue'
 import BaseTable from '@/components/base/BaseTable.vue'
 import { mediaAssetsService } from '@/services/mediaAssetsService'
 import { reportsService } from '@/services/reportsService'
@@ -258,32 +255,35 @@ onBeforeUnmount(() => {
         <h1>Viagens</h1>
       </div>
       <div class="header-actions">
-        <BaseButton
+        <VaButton
+          class="base-button"
+          color="secondary"
           type="button"
-          variant="secondary"
           @click="loadTrips"
         >
           Atualizar
-        </BaseButton>
-        <BaseButton
+        </VaButton>
+        <VaButton
           v-if="canViewReports"
+          class="base-button"
+          color="secondary"
           data-test="export-csv"
           type="button"
-          variant="secondary"
           :loading="exporting === 'csv'"
           @click="exportReport('csv')"
         >
           CSV
-        </BaseButton>
-        <BaseButton
+        </VaButton>
+        <VaButton
           v-if="canViewReports"
+          class="base-button"
           data-test="export-pdf"
           type="button"
           :loading="exporting === 'pdf'"
           @click="exportReport('pdf')"
         >
           PDF
-        </BaseButton>
+        </VaButton>
       </div>
     </header>
 
@@ -293,42 +293,61 @@ onBeforeUnmount(() => {
           class="filters-row"
           data-test="trip-filters"
         >
-          <BaseSelect
+          <VaSelect
             v-model="filters.status"
+            class="base-field"
             label="Status"
             :options="statusOptions"
+            placeholder="Selecione"
+            text-by="label"
+            track-by="value"
+            value-by="value"
           />
-          <BaseInput
+          <VaInput
             v-model="filters.plate"
+            class="base-field"
             label="Placa"
             placeholder="ABC-1D23"
           />
-          <BaseSelect
+          <VaSelect
             v-model="filters.load_status"
+            class="base-field"
             label="Carga"
             :options="loadOptions"
+            placeholder="Selecione"
+            text-by="label"
+            track-by="value"
+            value-by="value"
           />
-          <BaseInput
+          <VaInput
             v-model="filters.date_from"
+            class="base-field"
             label="De"
             type="date"
           />
-          <BaseInput
+          <VaInput
             v-model="filters.date_to"
+            class="base-field"
             label="Ate"
             type="date"
           />
-          <BaseSelect
+          <VaSelect
             v-model="filters.direction"
+            class="base-field"
             label="Direcao"
             :options="directionOptions"
+            placeholder="Selecione"
+            text-by="label"
+            track-by="value"
+            value-by="value"
           />
-          <BaseButton
+          <VaButton
+            class="base-button"
             type="button"
             @click="applyFilters"
           >
             Filtrar
-          </BaseButton>
+          </VaButton>
         </div>
       </VaCardContent>
     </VaCard>
@@ -363,14 +382,15 @@ onBeforeUnmount(() => {
               <td>{{ formatDate(tripFrom(row).closed_at) }}</td>
               <td>{{ loadLabel(tripFrom(row).current_load_status) }}</td>
               <td>
-                <BaseButton
+                <VaButton
+                  class="base-button"
+                  color="secondary"
                   data-test="select-trip"
                   type="button"
-                  variant="secondary"
                   @click="selectTrip(tripFrom(row))"
                 >
                   Revisar
-                </BaseButton>
+                </VaButton>
               </td>
             </template>
           </BaseTable>
@@ -379,25 +399,27 @@ onBeforeUnmount(() => {
             v-if="lastPage > 1"
             class="pagination-row"
           >
-            <BaseButton
+            <VaButton
+              class="base-button"
+              color="secondary"
               data-test="previous-page"
               type="button"
-              variant="secondary"
               :disabled="loading || currentPage === 1"
               @click="previousPage"
             >
               Anterior
-            </BaseButton>
+            </VaButton>
             <span class="muted">Pagina {{ currentPage }} de {{ lastPage }}</span>
-            <BaseButton
+            <VaButton
+              class="base-button"
+              color="secondary"
               data-test="next-page"
               type="button"
-              variant="secondary"
               :disabled="loading || currentPage === lastPage"
               @click="nextPage"
             >
               Proxima
-            </BaseButton>
+            </VaButton>
           </div>
         </VaCardContent>
       </VaCard>
@@ -464,29 +486,32 @@ onBeforeUnmount(() => {
                 v-if="canManageTrips"
                 class="row-actions"
               >
-                <BaseButton
+                <VaButton
+                  class="base-button"
                   type="button"
                   :disabled="savingEventId === event.id"
                   @click="updateLoadStatus(event, 'loaded')"
                 >
                   Carregado
-                </BaseButton>
-                <BaseButton
+                </VaButton>
+                <VaButton
+                  class="base-button"
+                  color="secondary"
                   type="button"
-                  variant="secondary"
                   :disabled="savingEventId === event.id"
                   @click="updateLoadStatus(event, 'empty')"
                 >
                   Vazio
-                </BaseButton>
-                <BaseButton
+                </VaButton>
+                <VaButton
+                  class="base-button"
+                  color="secondary"
                   type="button"
-                  variant="secondary"
                   :disabled="savingEventId === event.id"
                   @click="updateLoadStatus(event, 'needs_review')"
                 >
                   Precisa revisao
-                </BaseButton>
+                </VaButton>
               </div>
 
               <section

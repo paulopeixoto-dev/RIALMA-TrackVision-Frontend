@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
-import BaseSelect from '@/components/base/BaseSelect.vue'
 import type { FieldErrors } from '@/types/api'
 import type { EdgeNodeInput, Location } from '@/types/admin'
 
@@ -36,23 +33,33 @@ function updateField<K extends keyof EdgeNodeInput>(key: K, value: EdgeNodeInput
     class="entity-form"
     @submit.prevent="$emit('submit')"
   >
-    <BaseSelect
-      :error="errors.location_id"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.location_id?.[0])"
+      :error-messages="errors.location_id?.[0] ?? ''"
       label="Local"
       :model-value="modelValue.location_id"
       name="location_id"
       :options="locationOptions"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('location_id', Number($event))"
     />
-    <BaseInput
-      :error="errors.name"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.name?.[0])"
+      :error-messages="errors.name?.[0] ?? ''"
       label="Nome"
       :model-value="modelValue.name"
       name="name"
       @update:model-value="updateField('name', $event)"
     />
-    <BaseInput
-      :error="errors.description"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.description?.[0])"
+      :error-messages="errors.description?.[0] ?? ''"
       label="Descricao"
       :model-value="modelValue.description"
       name="description"
@@ -65,19 +72,21 @@ function updateField<K extends keyof EdgeNodeInput>(key: K, value: EdgeNodeInput
       @update:model-value="updateField('is_active', Boolean($event))"
     />
     <div class="form-actions">
-      <BaseButton
+      <VaButton
+        class="base-button"
         :loading="submitting"
         type="submit"
       >
         Salvar
-      </BaseButton>
-      <BaseButton
+      </VaButton>
+      <VaButton
+        class="base-button"
+        preset="plain"
         type="button"
-        variant="ghost"
         @click="$emit('cancel')"
       >
         Cancelar
-      </BaseButton>
+      </VaButton>
     </div>
   </form>
 </template>

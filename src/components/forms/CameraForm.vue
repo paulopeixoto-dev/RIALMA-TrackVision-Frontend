@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
-import BaseSelect from '@/components/base/BaseSelect.vue'
 import type { FieldErrors } from '@/types/api'
 import type { CameraInput, EdgeNode, Location } from '@/types/admin'
 
@@ -38,31 +35,47 @@ function updateField<K extends keyof CameraInput>(key: K, value: CameraInput[K])
     class="entity-form"
     @submit.prevent="$emit('submit')"
   >
-    <BaseSelect
-      :error="errors.location_id"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.location_id?.[0])"
+      :error-messages="errors.location_id?.[0] ?? ''"
       label="Local"
       :model-value="modelValue.location_id"
       name="location_id"
       :options="locationOptions"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('location_id', Number($event))"
     />
-    <BaseSelect
-      :error="errors.edge_node_id"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.edge_node_id?.[0])"
+      :error-messages="errors.edge_node_id?.[0] ?? ''"
       label="Edge node"
       :model-value="modelValue.edge_node_id"
       name="edge_node_id"
       :options="edgeNodeOptions"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('edge_node_id', Number($event))"
     />
-    <BaseInput
-      :error="errors.name"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.name?.[0])"
+      :error-messages="errors.name?.[0] ?? ''"
       label="Nome"
       :model-value="modelValue.name"
       name="name"
       @update:model-value="updateField('name', $event)"
     />
-    <BaseSelect
-      :error="errors.type"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.type?.[0])"
+      :error-messages="errors.type?.[0] ?? ''"
       label="Tipo"
       :model-value="modelValue.type"
       name="type"
@@ -70,48 +83,68 @@ function updateField<K extends keyof CameraInput>(key: K, value: CameraInput[K])
         { label: 'LPR', value: 'lpr' },
         { label: 'Apoio', value: 'support' },
       ]"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('type', $event as CameraInput['type'])"
     />
-    <BaseSelect
-      :error="errors.vendor"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.vendor?.[0])"
+      :error-messages="errors.vendor?.[0] ?? ''"
       label="Fabricante"
       :model-value="modelValue.vendor"
       name="vendor"
       :options="[{ label: 'Intelbras', value: 'intelbras' }]"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('vendor', 'intelbras')"
     />
-    <BaseInput
-      :error="errors.host"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.host?.[0])"
+      :error-messages="errors.host?.[0] ?? ''"
       label="Host"
       :model-value="modelValue.host"
       name="host"
       @update:model-value="updateField('host', $event)"
     />
-    <BaseInput
-      :error="errors.port"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.port?.[0])"
+      :error-messages="errors.port?.[0] ?? ''"
       label="Porta"
       :model-value="modelValue.port"
       name="port"
       type="number"
       @update:model-value="updateField('port', Number($event))"
     />
-    <BaseInput
-      :error="errors.channel"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.channel?.[0])"
+      :error-messages="errors.channel?.[0] ?? ''"
       label="Canal"
       :model-value="modelValue.channel"
       name="channel"
       type="number"
       @update:model-value="updateField('channel', $event ? Number($event) : null)"
     />
-    <BaseInput
-      :error="errors.username"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.username?.[0])"
+      :error-messages="errors.username?.[0] ?? ''"
       label="Usuario"
       :model-value="modelValue.username"
       name="username"
       @update:model-value="updateField('username', $event || null)"
     />
-    <BaseInput
-      :error="errors.password"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.password?.[0])"
+      :error-messages="errors.password?.[0] ?? ''"
       autocomplete="new-password"
       label="Senha"
       :model-value="modelValue.password ?? ''"
@@ -126,19 +159,21 @@ function updateField<K extends keyof CameraInput>(key: K, value: CameraInput[K])
       @update:model-value="updateField('is_active', Boolean($event))"
     />
     <div class="form-actions">
-      <BaseButton
+      <VaButton
+        class="base-button"
         :loading="submitting"
         type="submit"
       >
         Salvar
-      </BaseButton>
-      <BaseButton
+      </VaButton>
+      <VaButton
+        class="base-button"
+        preset="plain"
         type="button"
-        variant="ghost"
         @click="$emit('cancel')"
       >
         Cancelar
-      </BaseButton>
+      </VaButton>
     </div>
   </form>
 </template>

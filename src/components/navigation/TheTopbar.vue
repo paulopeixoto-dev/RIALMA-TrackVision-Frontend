@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { LogOut, Menu } from 'lucide-vue-next'
 import { useRouter } from 'vue-router'
-import BaseButton from '@/components/base/BaseButton.vue'
 import { useAuthStore } from '@/stores/authStore'
 
 const authStore = useAuthStore()
@@ -23,10 +22,10 @@ async function logout(): Promise<void> {
   >
     <template #left>
       <div class="topbar__left">
-        <BaseButton
+        <VaButton
           data-test="sidebar-toggle"
+          preset="plain"
           type="button"
-          variant="ghost"
           title="Alternar menu"
           @click="emit('toggle-sidebar')"
         >
@@ -34,7 +33,7 @@ async function logout(): Promise<void> {
             :size="18"
             aria-hidden="true"
           />
-        </BaseButton>
+        </VaButton>
         <div>
           <p class="topbar__eyebrow">
             Painel administrativo
@@ -50,10 +49,10 @@ async function logout(): Promise<void> {
           <span>{{ authStore.user?.name ? authStore.user.name : 'Operador' }}</span>
           <small>{{ authStore.user?.email ? authStore.user.email : 'Sessao ativa' }}</small>
         </div>
-        <BaseButton
+        <VaButton
+          color="secondary"
           data-test="logout-button"
           type="button"
-          variant="secondary"
           title="Sair"
           @click="logout"
         >
@@ -62,7 +61,7 @@ async function logout(): Promise<void> {
             aria-hidden="true"
           />
           <span>Sair</span>
-        </BaseButton>
+        </VaButton>
       </div>
     </template>
   </VaNavbar>

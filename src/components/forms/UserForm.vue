@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import type { FieldErrors } from '@/types/api'
 import type { Role, UserFormInput } from '@/types/admin'
 
@@ -48,16 +46,20 @@ function roleErrors(): string[] | undefined {
     class="entity-form"
     @submit.prevent="$emit('submit')"
   >
-    <BaseInput
-      :error="errors.name"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.name?.[0])"
+      :error-messages="errors.name?.[0] ?? ''"
       label="Nome"
       :model-value="modelValue.name"
       name="name"
       autocomplete="name"
       @update:model-value="updateField('name', $event)"
     />
-    <BaseInput
-      :error="errors.email"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.email?.[0])"
+      :error-messages="errors.email?.[0] ?? ''"
       label="Email"
       :model-value="modelValue.email"
       name="email"
@@ -66,8 +68,10 @@ function roleErrors(): string[] | undefined {
       @update:model-value="updateField('email', $event)"
     />
     <template v-if="mode === 'create'">
-      <BaseInput
-        :error="errors.password"
+      <VaInput
+        class="base-field"
+        :error="Boolean(errors.password?.[0])"
+        :error-messages="errors.password?.[0] ?? ''"
         label="Senha"
         :model-value="modelValue.password ?? ''"
         name="password"
@@ -75,8 +79,10 @@ function roleErrors(): string[] | undefined {
         autocomplete="new-password"
         @update:model-value="updateField('password', $event)"
       />
-      <BaseInput
-        :error="errors.password_confirmation"
+      <VaInput
+        class="base-field"
+        :error="Boolean(errors.password_confirmation?.[0])"
+        :error-messages="errors.password_confirmation?.[0] ?? ''"
         label="Confirmar senha"
         :model-value="modelValue.password_confirmation ?? ''"
         name="password_confirmation"
@@ -111,19 +117,21 @@ function roleErrors(): string[] | undefined {
     </fieldset>
 
     <div class="form-actions">
-      <BaseButton
+      <VaButton
+        class="base-button"
         :loading="submitting"
         type="submit"
       >
         Salvar
-      </BaseButton>
-      <BaseButton
+      </VaButton>
+      <VaButton
+        class="base-button"
+        preset="plain"
         type="button"
-        variant="ghost"
         @click="$emit('cancel')"
       >
         Cancelar
-      </BaseButton>
+      </VaButton>
     </div>
   </form>
 </template>

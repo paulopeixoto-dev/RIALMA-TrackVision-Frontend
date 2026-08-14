@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import type { FieldErrors } from '@/types/api'
 import type { LocationInput } from '@/types/admin'
 
@@ -26,15 +24,19 @@ function updateField<K extends keyof LocationInput>(key: K, value: LocationInput
     class="entity-form"
     @submit.prevent="$emit('submit')"
   >
-    <BaseInput
-      :error="errors.name"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.name?.[0])"
+      :error-messages="errors.name?.[0] ?? ''"
       label="Nome"
       :model-value="modelValue.name"
       name="name"
       @update:model-value="updateField('name', $event)"
     />
-    <BaseInput
-      :error="errors.description"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.description?.[0])"
+      :error-messages="errors.description?.[0] ?? ''"
       label="Descricao"
       :model-value="modelValue.description"
       name="description"
@@ -47,19 +49,21 @@ function updateField<K extends keyof LocationInput>(key: K, value: LocationInput
       @update:model-value="updateField('is_active', Boolean($event))"
     />
     <div class="form-actions">
-      <BaseButton
+      <VaButton
+        class="base-button"
         :loading="submitting"
         type="submit"
       >
         Salvar
-      </BaseButton>
-      <BaseButton
+      </VaButton>
+      <VaButton
+        class="base-button"
+        preset="plain"
         type="button"
-        variant="ghost"
         @click="$emit('cancel')"
       >
         Cancelar
-      </BaseButton>
+      </VaButton>
     </div>
   </form>
 </template>

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import type { FieldErrors } from '@/types/api'
 import type { VehicleInput } from '@/types/admin'
 
@@ -27,22 +25,28 @@ function updateField<K extends keyof VehicleInput>(key: K, value: VehicleInput[K
     class="entity-form"
     @submit.prevent="$emit('submit')"
   >
-    <BaseInput
-      :error="errors.plate"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.plate?.[0])"
+      :error-messages="errors.plate?.[0] ?? ''"
       label="Placa"
       :model-value="modelValue.plate"
       name="plate"
       @update:model-value="updateField('plate', $event)"
     />
-    <BaseInput
-      :error="errors.fleet_code"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.fleet_code?.[0])"
+      :error-messages="errors.fleet_code?.[0] ?? ''"
       label="Codigo de frota"
       :model-value="modelValue.fleet_code"
       name="fleet_code"
       @update:model-value="updateField('fleet_code', $event)"
     />
-    <BaseInput
-      :error="errors.description"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.description?.[0])"
+      :error-messages="errors.description?.[0] ?? ''"
       label="Descricao"
       :model-value="modelValue.description"
       name="description"
@@ -55,19 +59,21 @@ function updateField<K extends keyof VehicleInput>(key: K, value: VehicleInput[K
       @update:model-value="updateField('is_active', Boolean($event))"
     />
     <div class="form-actions">
-      <BaseButton
+      <VaButton
+        class="base-button"
         :loading="submitting"
         type="submit"
       >
         Salvar
-      </BaseButton>
-      <BaseButton
+      </VaButton>
+      <VaButton
+        class="base-button"
+        preset="plain"
         type="button"
-        variant="ghost"
         @click="$emit('cancel')"
       >
         Cancelar
-      </BaseButton>
+      </VaButton>
     </div>
   </form>
 </template>

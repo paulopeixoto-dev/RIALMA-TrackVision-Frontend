@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseTable from '@/components/base/BaseTable.vue'
 import EdgeNodeForm from '@/components/forms/EdgeNodeForm.vue'
@@ -132,9 +131,12 @@ onMounted(loadData)
         </p>
         <h1>Edge Nodes</h1>
       </div>
-      <BaseButton @click="openCreate">
+      <VaButton
+        class="base-button"
+        @click="openCreate"
+      >
         Novo edge node
-      </BaseButton>
+      </VaButton>
     </header>
 
     <BaseAlert
@@ -166,20 +168,22 @@ onMounted(loadData)
             <td>{{ edgeNodeFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
             <td>
               <div class="row-actions">
-                <BaseButton
+                <VaButton
+                  class="base-button"
+                  color="secondary"
                   type="button"
-                  variant="secondary"
                   @click="openEdit(edgeNodeFrom(row))"
                 >
                   Editar
-                </BaseButton>
-                <BaseButton
+                </VaButton>
+                <VaButton
+                  class="base-button"
+                  color="danger"
                   type="button"
-                  variant="danger"
                   @click="deleteEdgeNode(edgeNodeFrom(row))"
                 >
                   Remover
-                </BaseButton>
+                </VaButton>
               </div>
             </td>
           </template>

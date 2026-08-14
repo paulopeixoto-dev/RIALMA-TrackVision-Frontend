@@ -2,8 +2,6 @@
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import { ApiError } from '@/services/apiClient'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -104,8 +102,10 @@ async function submitLogin(): Promise<void> {
               {{ formError }}
             </BaseAlert>
 
-            <BaseInput
-              :error="fieldErrors.email"
+            <VaInput
+              class="base-field"
+              :error="Boolean(fieldErrors.email?.[0])"
+              :error-messages="fieldErrors.email?.[0] ?? ''"
               autocomplete="email"
               label="Email"
               :model-value="email"
@@ -114,8 +114,10 @@ async function submitLogin(): Promise<void> {
               @update:model-value="email = $event"
             />
             <div class="password-field">
-              <BaseInput
-                :error="fieldErrors.password"
+              <VaInput
+                class="base-field"
+                :error="Boolean(fieldErrors.password?.[0])"
+                :error-messages="fieldErrors.password?.[0] ?? ''"
                 autocomplete="current-password"
                 label="Senha"
                 :model-value="password"
@@ -123,24 +125,25 @@ async function submitLogin(): Promise<void> {
                 :type="passwordVisible ? 'text' : 'password'"
                 @update:model-value="password = $event"
               />
-              <button
+              <VaButton
                 class="password-field__toggle"
                 data-test="password-visibility"
+                preset="plain"
                 type="button"
                 :aria-label="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'"
                 @click="passwordVisible = !passwordVisible"
               >
                 {{ passwordVisible ? 'Ocultar' : 'Mostrar' }}
-              </button>
+              </VaButton>
             </div>
 
-            <BaseButton
+            <VaButton
               class="auth-form__submit"
               :loading="isSubmitting"
               type="submit"
             >
               {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
-            </BaseButton>
+            </VaButton>
           </VaForm>
         </VaCardContent>
       </VaCard>

@@ -1,8 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseSelect from '@/components/base/BaseSelect.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import type { FieldErrors } from '@/types/api'
 import type { Camera, CameraPairInput, EdgeNode, Location } from '@/types/admin'
 
@@ -57,47 +54,75 @@ function updateField<K extends keyof CameraPairInput>(key: K, value: CameraPairI
     class="entity-form"
     @submit.prevent="$emit('submit')"
   >
-    <BaseInput
-      :error="errors.name"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.name?.[0])"
+      :error-messages="errors.name?.[0] ?? ''"
       label="Nome"
       :model-value="modelValue.name"
       name="name"
       @update:model-value="updateField('name', $event)"
     />
-    <BaseSelect
-      :error="errors.location_id"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.location_id?.[0])"
+      :error-messages="errors.location_id?.[0] ?? ''"
       label="Local"
       :model-value="modelValue.location_id"
       name="location_id"
       :options="locationOptions"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('location_id', Number($event))"
     />
-    <BaseSelect
-      :error="errors.edge_node_id"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.edge_node_id?.[0])"
+      :error-messages="errors.edge_node_id?.[0] ?? ''"
       label="Edge node"
       :model-value="modelValue.edge_node_id"
       name="edge_node_id"
       :options="edgeNodeOptions"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('edge_node_id', Number($event))"
     />
-    <BaseSelect
-      :error="errors.lpr_camera_id"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.lpr_camera_id?.[0])"
+      :error-messages="errors.lpr_camera_id?.[0] ?? ''"
       label="Camera LPR"
       :model-value="modelValue.lpr_camera_id"
       name="lpr_camera_id"
       :options="lprCameraOptions"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('lpr_camera_id', Number($event))"
     />
-    <BaseSelect
-      :error="errors.support_camera_id"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.support_camera_id?.[0])"
+      :error-messages="errors.support_camera_id?.[0] ?? ''"
       label="Camera de apoio"
       :model-value="modelValue.support_camera_id"
       name="support_camera_id"
       :options="supportCameraOptions"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('support_camera_id', Number($event))"
     />
-    <BaseSelect
-      :error="errors.direction"
+    <VaSelect
+      class="base-field"
+      :error="Boolean(errors.direction?.[0])"
+      :error-messages="errors.direction?.[0] ?? ''"
       label="Direcao"
       :model-value="modelValue.direction"
       name="direction"
@@ -106,6 +131,10 @@ function updateField<K extends keyof CameraPairInput>(key: K, value: CameraPairI
         { label: 'Volta', value: 'inbound' },
         { label: 'Indefinida', value: 'unknown' },
       ]"
+      placeholder="Selecione"
+      text-by="label"
+      track-by="value"
+      value-by="value"
       @update:model-value="updateField('direction', $event as CameraPairInput['direction'])"
     />
     <VaCheckbox
@@ -115,19 +144,21 @@ function updateField<K extends keyof CameraPairInput>(key: K, value: CameraPairI
       @update:model-value="updateField('is_active', Boolean($event))"
     />
     <div class="form-actions">
-      <BaseButton
+      <VaButton
+        class="base-button"
         :loading="submitting"
         type="submit"
       >
         Salvar
-      </BaseButton>
-      <BaseButton
+      </VaButton>
+      <VaButton
+        class="base-button"
+        preset="plain"
         type="button"
-        variant="ghost"
         @click="$emit('cancel')"
       >
         Cancelar
-      </BaseButton>
+      </VaButton>
     </div>
   </form>
 </template>

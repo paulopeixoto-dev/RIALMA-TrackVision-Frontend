@@ -214,9 +214,9 @@ describe('TripsPage', () => {
     await waitForPromises()
 
     const filters = wrapper.get('[data-test="trip-filters"]')
-    expect(filters.findAllComponents({ name: 'BaseSelect' })).toHaveLength(3)
-    expect(filters.findAllComponents({ name: 'BaseInput' })).toHaveLength(3)
-    expect(filters.findAllComponents({ name: 'BaseButton' }).filter((button: { text: () => string }) => button.text() === 'Filtrar')).toHaveLength(1)
+    expect(filters.findAllComponents({ name: 'VaSelect' })).toHaveLength(3)
+    expect(filters.findAllComponents({ name: 'VaInput' })).toHaveLength(3)
+    expect(filters.findAllComponents({ name: 'VaButton' }).filter((button: { text: () => string }) => button.text() === 'Filtrar')).toHaveLength(1)
   })
 
   it('shows report buttons only when user can view reports', async () => {
@@ -259,7 +259,7 @@ describe('TripsPage', () => {
       const dateInputs = wrapper.findAll('input[type="date"]')
       await dateInputs[0].setValue('2026-08-01')
       await dateInputs[1].setValue('2026-08-12')
-      wrapper.findAllComponents({ name: 'BaseSelect' })[2].vm.$emit('update:modelValue', 'inbound')
+      wrapper.findAllComponents({ name: 'VaSelect' })[2].vm.$emit('update:modelValue', 'inbound')
       await wrapper.get('[data-test="export-pdf"]').trigger('click')
 
       expect(reportsService.downloadPdf).toHaveBeenCalledWith(expect.objectContaining({

@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import BaseButton from '@/components/base/BaseButton.vue'
-import BaseInput from '@/components/base/BaseInput.vue'
 import type { FieldErrors } from '@/types/api'
 import type { UserPasswordInput } from '@/types/admin'
 
@@ -26,8 +24,10 @@ function updateField<K extends keyof UserPasswordInput>(key: K, value: UserPassw
     class="entity-form"
     @submit.prevent="$emit('submit')"
   >
-    <BaseInput
-      :error="errors.password"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.password?.[0])"
+      :error-messages="errors.password?.[0] ?? ''"
       label="Nova senha"
       :model-value="modelValue.password"
       name="password"
@@ -35,8 +35,10 @@ function updateField<K extends keyof UserPasswordInput>(key: K, value: UserPassw
       autocomplete="new-password"
       @update:model-value="updateField('password', $event)"
     />
-    <BaseInput
-      :error="errors.password_confirmation"
+    <VaInput
+      class="base-field"
+      :error="Boolean(errors.password_confirmation?.[0])"
+      :error-messages="errors.password_confirmation?.[0] ?? ''"
       label="Confirmar senha"
       :model-value="modelValue.password_confirmation"
       name="password_confirmation"
@@ -45,19 +47,21 @@ function updateField<K extends keyof UserPasswordInput>(key: K, value: UserPassw
       @update:model-value="updateField('password_confirmation', $event)"
     />
     <div class="form-actions">
-      <BaseButton
+      <VaButton
+        class="base-button"
         :loading="submitting"
         type="submit"
       >
         Redefinir senha
-      </BaseButton>
-      <BaseButton
+      </VaButton>
+      <VaButton
+        class="base-button"
+        preset="plain"
         type="button"
-        variant="ghost"
         @click="$emit('cancel')"
       >
         Cancelar
-      </BaseButton>
+      </VaButton>
     </div>
   </form>
 </template>

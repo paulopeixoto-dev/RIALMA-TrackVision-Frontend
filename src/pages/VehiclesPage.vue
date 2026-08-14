@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue'
 import BaseAlert from '@/components/base/BaseAlert.vue'
-import BaseButton from '@/components/base/BaseButton.vue'
 import BaseModal from '@/components/base/BaseModal.vue'
 import BaseTable from '@/components/base/BaseTable.vue'
 import VehicleForm from '@/components/forms/VehicleForm.vue'
@@ -136,9 +135,12 @@ onMounted(loadVehicles)
         </p>
         <h1>Veiculos</h1>
       </div>
-      <BaseButton @click="openCreate">
+      <VaButton
+        class="base-button"
+        @click="openCreate"
+      >
         Novo veiculo
-      </BaseButton>
+      </VaButton>
     </header>
 
     <BaseAlert
@@ -169,20 +171,22 @@ onMounted(loadVehicles)
             <td>{{ vehicleFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
             <td>
               <div class="row-actions">
-                <BaseButton
+                <VaButton
+                  class="base-button"
+                  color="secondary"
                   type="button"
-                  variant="secondary"
                   @click="openEdit(vehicleFrom(row))"
                 >
                   Editar
-                </BaseButton>
-                <BaseButton
+                </VaButton>
+                <VaButton
+                  class="base-button"
+                  color="danger"
                   type="button"
-                  variant="danger"
                   @click="deleteVehicle(vehicleFrom(row))"
                 >
                   Remover
-                </BaseButton>
+                </VaButton>
               </div>
             </td>
           </template>
