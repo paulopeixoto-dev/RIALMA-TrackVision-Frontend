@@ -108,7 +108,7 @@ export interface CameraPair {
   location?: Location
   edge_node?: EdgeNode
   lpr_camera?: Camera
-  support_camera?: Camera
+  support_camera?: Camera | null
 }
 
 export interface CameraPairInput {
@@ -116,7 +116,7 @@ export interface CameraPairInput {
   edge_node_id: number
   name: string
   lpr_camera_id: number
-  support_camera_id: number
+  support_camera_id: number | null
   direction: 'outbound' | 'inbound' | 'unknown'
   is_active: boolean
 }

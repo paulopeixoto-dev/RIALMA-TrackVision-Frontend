@@ -23,7 +23,7 @@ const emptyForm: CameraPairInput = {
   edge_node_id: 0,
   name: '',
   lpr_camera_id: 0,
-  support_camera_id: 0,
+  support_camera_id: null,
   direction: 'unknown',
   is_active: true,
 }
@@ -85,7 +85,7 @@ function openEdit(pair: CameraPair): void {
     edge_node_id: pair.edge_node?.id ?? 0,
     name: pair.name,
     lpr_camera_id: pair.lpr_camera?.id ?? 0,
-    support_camera_id: pair.support_camera?.id ?? 0,
+    support_camera_id: pair.support_camera?.id ?? null,
     direction: pair.direction,
     is_active: pair.is_active,
   }
@@ -187,7 +187,7 @@ onMounted(loadData)
             {{ pairFrom(rowData).lpr_camera?.name ?? '-' }}
           </template>
           <template #cell(support_camera)="{ rowData }">
-            {{ pairFrom(rowData).support_camera?.name ?? '-' }}
+            {{ pairFrom(rowData).support_camera?.name ?? 'Sem apoio' }}
           </template>
           <template #cell(direction)="{ rowData }">
             {{ pairFrom(rowData).direction }}

@@ -39,13 +39,20 @@ const lprCameraOptions = computed(() =>
 )
 
 const supportCameraOptions = computed(() =>
-  props.cameras
-    .filter((camera) => camera.type === 'support' && belongsToSelectedScope(camera))
-    .map((camera) => ({ label: camera.name, value: camera.id })),
+  [
+    { label: 'Sem apoio', value: null },
+    ...props.cameras
+      .filter((camera) => camera.type === 'support' && belongsToSelectedScope(camera))
+      .map((camera) => ({ label: camera.name, value: camera.id })),
+  ],
 )
 
 function updateField<K extends keyof CameraPairInput>(key: K, value: CameraPairInput[K]): void {
   emit('update:modelValue', { ...props.modelValue, [key]: value })
+}
+
+function optionalCameraId(value: unknown): number | null {
+  return value === null || value === undefined || value === '' ? null : Number(value)
 }
 </script>
 
@@ -109,15 +116,16 @@ function updateField<K extends keyof CameraPairInput>(key: K, value: CameraPairI
       class="base-field"
       :error="Boolean(errors.support_camera_id?.[0])"
       :error-messages="errors.support_camera_id?.[0] ?? ''"
+      clearable
       label="Camera de apoio"
       :model-value="modelValue.support_camera_id"
       name="support_camera_id"
       :options="supportCameraOptions"
-      placeholder="Selecione"
+      placeholder="Opcional"
       text-by="label"
       track-by="value"
       value-by="value"
-      @update:model-value="updateField('support_camera_id', Number($event))"
+      @update:model-value="updateField('support_camera_id', optionalCameraId($event))"
     />
     <VaSelect
       class="base-field"
