@@ -3,6 +3,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { describe, expect, it } from 'vitest'
 import App from './App.vue'
 import { createAppRouter } from './router'
+import { createVuesticTestPlugin } from './test/vuestic'
 
 describe('App', () => {
   it('mounts the router shell', async () => {
@@ -12,7 +13,7 @@ describe('App', () => {
 
     const wrapper = mount(App, {
       global: {
-        plugins: [pinia, router],
+        plugins: [pinia, router, createVuesticTestPlugin()],
       },
     })
 
