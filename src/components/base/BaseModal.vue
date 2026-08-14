@@ -4,42 +4,34 @@ defineProps<{
   title: string
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   close: []
 }>()
 </script>
 
 <template>
-  <Teleport to="body">
-    <div
-      v-if="open"
-      class="modal-backdrop"
-      role="presentation"
-      @click.self="$emit('close')"
-    >
-      <section
-        class="base-modal"
-        role="dialog"
-        aria-modal="true"
-        :aria-labelledby="`${title}-modal-title`"
-      >
-        <header class="base-modal__header">
-          <h2 :id="`${title}-modal-title`">
-            {{ title }}
-          </h2>
-          <button
-            class="icon-button"
-            type="button"
-            aria-label="Fechar"
-            @click="$emit('close')"
-          >
-            x
-          </button>
-        </header>
-        <div class="base-modal__body">
-          <slot />
-        </div>
-      </section>
+  <VaModal
+    class="base-modal"
+    :model-value="open"
+    hide-default-actions
+    max-width="760px"
+    mobile-fullscreen
+    @update:model-value="!$event && emit('close')"
+  >
+    <template #header>
+      <div class="base-modal__header">
+        <h2>{{ title }}</h2>
+        <VaButton
+          aria-label="Fechar"
+          icon="close"
+          preset="plain"
+          @click="emit('close')"
+        />
+      </div>
+    </template>
+
+    <div class="base-modal__body">
+      <slot />
     </div>
-  </Teleport>
+  </VaModal>
 </template>

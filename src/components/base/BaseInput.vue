@@ -16,7 +16,7 @@ withDefaults(
   },
 )
 
-defineEmits<{
+const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
@@ -26,21 +26,15 @@ function firstError(error?: string | string[]): string {
 </script>
 
 <template>
-  <label class="base-field">
-    <span>{{ label }}</span>
-    <input
-      class="base-input"
-      :autocomplete="autocomplete"
-      :name="name"
-      :type="type"
-      :value="modelValue ?? ''"
-      @input="$emit('update:modelValue', ($event.target as HTMLInputElement).value)"
-    >
-  </label>
-  <p
-    v-if="firstError(error)"
-    class="field-error"
-  >
-    {{ firstError(error) }}
-  </p>
+  <VaInput
+    class="base-field"
+    :autocomplete="autocomplete"
+    :error="Boolean(firstError(error))"
+    :error-messages="firstError(error)"
+    :label="label"
+    :model-value="modelValue ?? ''"
+    :name="name"
+    :type="type"
+    @update:model-value="emit('update:modelValue', String($event))"
+  />
 </template>
