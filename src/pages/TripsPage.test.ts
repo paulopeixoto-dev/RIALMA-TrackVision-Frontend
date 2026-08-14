@@ -5,6 +5,7 @@ import { mediaAssetsService } from '@/services/mediaAssetsService'
 import { reportsService } from '@/services/reportsService'
 import { useAuthStore } from '@/stores/authStore'
 import { tripsService } from '@/services/tripsService'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import TripsPage from './TripsPage.vue'
 
 const { trip, detailedTrip } = vi.hoisted(() => {
@@ -81,6 +82,12 @@ function waitForPromises(): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, 0))
 }
 
+function mountTripsPage() {
+  return mount(TripsPage, {
+    global: { plugins: [createVuesticTestPlugin()] },
+  })
+}
+
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
   let resolve!: (value: T) => void
   const promise = new Promise<T>((next) => {
@@ -103,7 +110,7 @@ describe('TripsPage', () => {
   })
 
   it('renders trips returned by the API', async () => {
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(wrapper.text()).toContain('ABC-1D23')
@@ -112,7 +119,7 @@ describe('TripsPage', () => {
   })
 
   it('loads selected trip detail with LPR and support images', async () => {
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     await wrapper.get('[data-test="select-trip"]').trigger('click')
@@ -131,7 +138,7 @@ describe('TripsPage', () => {
     }
     vi.mocked(tripsService.list).mockResolvedValue({ data: [trip, nextTrip] } as never)
 
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
 
     const selectionButtons = wrapper.findAll('[data-test="select-trip"]')
@@ -152,7 +159,7 @@ describe('TripsPage', () => {
       .mockRejectedValueOnce(new Error('missing LPR'))
       .mockResolvedValueOnce('blob:support-image-url')
 
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
     await wrapper.get('[data-test="select-trip"]').trigger('click')
     await waitForPromises()
@@ -174,7 +181,7 @@ describe('TripsPage', () => {
       .mockResolvedValueOnce({ data: [nextTrip], meta: { current_page: 2, last_page: 2 } } as never)
       .mockResolvedValueOnce({ data: [trip], meta: { current_page: 1, last_page: 2 } } as never)
 
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
 
     await wrapper.get('[data-test="next-page"]').trigger('click')
@@ -203,23 +210,26 @@ describe('TripsPage', () => {
   })
 
   it('groups all filter controls in the responsive filter grid', async () => {
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
 
-    expect(wrapper.get('[data-test="trip-filters"]').findAll('input, select, button')).toHaveLength(7)
+    const filters = wrapper.get('[data-test="trip-filters"]')
+    expect(filters.findAllComponents({ name: 'BaseSelect' })).toHaveLength(3)
+    expect(filters.findAllComponents({ name: 'BaseInput' })).toHaveLength(3)
+    expect(filters.findAllComponents({ name: 'BaseButton' }).filter((button: { text: () => string }) => button.text() === 'Filtrar')).toHaveLength(1)
   })
 
   it('shows report buttons only when user can view reports', async () => {
     const authStore = useAuthStore()
     authStore.permissions = ['captures.view']
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
 
     expect(wrapper.findAll('button').map((button) => button.text())).not.toContain('CSV')
     expect(wrapper.findAll('button').map((button) => button.text())).not.toContain('PDF')
 
     authStore.permissions = ['captures.view', 'reports.view']
-    const allowedWrapper = mount(TripsPage)
+    const allowedWrapper = mountTripsPage()
     await waitForPromises()
 
     expect(allowedWrapper.findAll('button').map((button) => button.text())).toContain('CSV')
@@ -233,7 +243,7 @@ describe('TripsPage', () => {
     vi.setSystemTime(new Date('2026-08-13T23:30:00-03:00'))
 
     try {
-      const wrapper = mount(TripsPage)
+      const wrapper = mountTripsPage()
       await vi.runAllTimersAsync()
 
       await wrapper.get('[data-test="export-csv"]').trigger('click')
@@ -249,7 +259,7 @@ describe('TripsPage', () => {
       const dateInputs = wrapper.findAll('input[type="date"]')
       await dateInputs[0].setValue('2026-08-01')
       await dateInputs[1].setValue('2026-08-12')
-      await wrapper.findAll('select')[2].setValue('inbound')
+      wrapper.findAllComponents({ name: 'BaseSelect' })[2].vm.$emit('update:modelValue', 'inbound')
       await wrapper.get('[data-test="export-pdf"]').trigger('click')
 
       expect(reportsService.downloadPdf).toHaveBeenCalledWith(expect.objectContaining({
@@ -263,7 +273,7 @@ describe('TripsPage', () => {
   })
 
   it('renders load status audit timeline in selected trip detail', async () => {
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
     await wrapper.get('[data-test="select-trip"]').trigger('click')
     await waitForPromises()
@@ -278,7 +288,7 @@ describe('TripsPage', () => {
     const authStore = useAuthStore()
     authStore.permissions = ['captures.view', 'reports.view']
     vi.mocked(reportsService.downloadCsv).mockRejectedValueOnce(new Error('download failed'))
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
     await wrapper.get('[data-test="select-trip"]').trigger('click')
     await waitForPromises()
@@ -293,7 +303,7 @@ describe('TripsPage', () => {
   it('shows load actions only when user can manage trips', async () => {
     const authStore = useAuthStore()
     authStore.permissions = ['captures.view']
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await new Promise((resolve) => setTimeout(resolve, 0))
     await wrapper.get('[data-test="select-trip"]').trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -301,7 +311,7 @@ describe('TripsPage', () => {
     expect(wrapper.findAll('button').map((button) => button.text())).not.toContain('Carregado')
 
     authStore.permissions = ['captures.view', 'trips.manage']
-    const allowedWrapper = mount(TripsPage)
+    const allowedWrapper = mountTripsPage()
     await new Promise((resolve) => setTimeout(resolve, 0))
     await allowedWrapper.get('[data-test="select-trip"]').trigger('click')
     await new Promise((resolve) => setTimeout(resolve, 0))
@@ -325,7 +335,7 @@ describe('TripsPage', () => {
       .mockImplementationOnce(() => olderDetail.promise as never)
       .mockImplementationOnce(() => newerDetail.promise as never)
 
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
 
     const selectionButtons = wrapper.findAll('[data-test="select-trip"]')
@@ -352,7 +362,7 @@ describe('TripsPage', () => {
     const lateImageUrl = deferred<string>()
     vi.mocked(mediaAssetsService.fetchObjectUrl).mockImplementationOnce(() => lateImageUrl.promise)
 
-    const wrapper = mount(TripsPage)
+    const wrapper = mountTripsPage()
     await waitForPromises()
     await wrapper.get('[data-test="select-trip"]').trigger('click')
     await waitForPromises()
