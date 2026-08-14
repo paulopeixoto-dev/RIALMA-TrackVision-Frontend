@@ -140,36 +140,40 @@ onMounted(loadLocations)
       {{ success }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhum local encontrado."
-      :loading="loading"
-      :rows="locations"
-    >
-      <template #row="{ row }">
-        <td>{{ locationFrom(row).name }}</td>
-        <td>{{ locationFrom(row).description ?? '-' }}</td>
-        <td>{{ locationFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-        <td>
-          <div class="row-actions">
-            <BaseButton
-              type="button"
-              variant="secondary"
-              @click="openEdit(locationFrom(row))"
-            >
-              Editar
-            </BaseButton>
-            <BaseButton
-              type="button"
-              variant="danger"
-              @click="deleteLocation(locationFrom(row))"
-            >
-              Remover
-            </BaseButton>
-          </div>
-        </td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhum local encontrado."
+          :loading="loading"
+          :rows="locations"
+        >
+          <template #row="{ row }">
+            <td>{{ locationFrom(row).name }}</td>
+            <td>{{ locationFrom(row).description ?? '-' }}</td>
+            <td>{{ locationFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
+            <td>
+              <div class="row-actions">
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  @click="openEdit(locationFrom(row))"
+                >
+                  Editar
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="danger"
+                  @click="deleteLocation(locationFrom(row))"
+                >
+                  Remover
+                </BaseButton>
+              </div>
+            </td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
 
     <BaseModal
       :open="modalOpen"

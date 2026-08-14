@@ -1,5 +1,5 @@
 <script setup lang="ts">
-withDefaults(
+const props = withDefaults(
   defineProps<{
     variant?: 'info' | 'success' | 'warning' | 'error'
   }>(),
@@ -7,14 +7,21 @@ withDefaults(
     variant: 'info',
   },
 )
+
+const colorByVariant = {
+  info: 'info',
+  success: 'success',
+  warning: 'warning',
+  error: 'danger',
+} as const
 </script>
 
 <template>
-  <div
+  <VaAlert
     class="base-alert"
-    :class="`base-alert--${variant}`"
+    :color="colorByVariant[props.variant]"
     role="status"
   >
     <slot />
-  </div>
+  </VaAlert>
 </template>

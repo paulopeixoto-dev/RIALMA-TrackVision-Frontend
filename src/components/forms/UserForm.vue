@@ -85,32 +85,23 @@ function roleErrors(): string[] | undefined {
         @update:model-value="updateField('password_confirmation', $event)"
       />
     </template>
-    <label class="checkbox-field">
-      <input
-        :checked="modelValue.is_active"
-        name="is_active"
-        type="checkbox"
-        @change="updateField('is_active', ($event.target as HTMLInputElement).checked)"
-      >
-      <span>Ativo</span>
-    </label>
+    <VaCheckbox
+      :model-value="modelValue.is_active"
+      label="Ativo"
+      name="is_active"
+      @update:model-value="updateField('is_active', Boolean($event))"
+    />
 
     <fieldset class="checkbox-group">
       <legend>Roles</legend>
-      <label
+      <VaCheckbox
         v-for="role in roles"
         :key="role.id"
-        class="checkbox-field"
-      >
-        <input
-          :checked="roleChecked(role.name)"
-          name="roles"
-          type="checkbox"
-          :value="role.name"
-          @change="updateRole(role.name, ($event.target as HTMLInputElement).checked)"
-        >
-        <span>{{ role.name }}</span>
-      </label>
+        :label="role.name"
+        :model-value="roleChecked(role.name)"
+        name="roles"
+        @update:model-value="updateRole(role.name, Boolean($event))"
+      />
       <p
         v-if="roleErrors()?.[0]"
         class="field-error"

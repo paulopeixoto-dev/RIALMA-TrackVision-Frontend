@@ -1,5 +1,7 @@
 <script setup lang="ts">
-withDefaults(
+import { computed } from 'vue'
+
+const props = withDefaults(
   defineProps<{
     variant?: 'primary' | 'secondary' | 'ghost' | 'danger'
     type?: 'button' | 'submit' | 'reset'
@@ -13,20 +15,31 @@ withDefaults(
     loading: false,
   },
 )
+
+const color = computed(() => {
+  if (props.variant === 'danger') {
+    return 'danger'
+  }
+
+  if (props.variant === 'secondary') {
+    return 'secondary'
+  }
+
+  return 'primary'
+})
+
+const preset = computed(() => (props.variant === 'ghost' ? 'plain' : undefined))
 </script>
 
 <template>
-  <button
+  <VaButton
     class="base-button"
-    :class="`base-button--${variant}`"
     :disabled="disabled || loading"
+    :color="color"
+    :loading="loading"
+    :preset="preset"
     :type="type"
   >
-    <span
-      v-if="loading"
-      class="base-button__spinner"
-      aria-hidden="true"
-    />
     <slot />
-  </button>
+  </VaButton>
 </template>

@@ -238,44 +238,48 @@ onMounted(async () => {
       {{ success }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhum usuario encontrado."
-      :loading="loading"
-      :rows="users"
-    >
-      <template #row="{ row }">
-        <td>{{ userFrom(row).name }}</td>
-        <td>{{ userFrom(row).email }}</td>
-        <td>{{ userFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-        <td>{{ rolesFor(userFrom(row)) }}</td>
-        <td>
-          <div class="row-actions">
-            <BaseButton
-              type="button"
-              variant="secondary"
-              @click="openEdit(userFrom(row))"
-            >
-              Editar
-            </BaseButton>
-            <BaseButton
-              type="button"
-              variant="secondary"
-              @click="openPassword(userFrom(row))"
-            >
-              Senha
-            </BaseButton>
-            <BaseButton
-              type="button"
-              variant="danger"
-              @click="deactivateUser(userFrom(row))"
-            >
-              Desativar
-            </BaseButton>
-          </div>
-        </td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhum usuario encontrado."
+          :loading="loading"
+          :rows="users"
+        >
+          <template #row="{ row }">
+            <td>{{ userFrom(row).name }}</td>
+            <td>{{ userFrom(row).email }}</td>
+            <td>{{ userFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
+            <td>{{ rolesFor(userFrom(row)) }}</td>
+            <td>
+              <div class="row-actions">
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  @click="openEdit(userFrom(row))"
+                >
+                  Editar
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  @click="openPassword(userFrom(row))"
+                >
+                  Senha
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="danger"
+                  @click="deactivateUser(userFrom(row))"
+                >
+                  Desativar
+                </BaseButton>
+              </div>
+            </td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
 
     <BaseModal
       :open="userModalOpen"

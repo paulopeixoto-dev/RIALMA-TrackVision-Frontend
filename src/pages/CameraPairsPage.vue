@@ -168,38 +168,42 @@ onMounted(loadData)
       {{ success }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhum par encontrado."
-      :loading="loading"
-      :rows="cameraPairs"
-    >
-      <template #row="{ row }">
-        <td>{{ pairFrom(row).name }}</td>
-        <td>{{ pairFrom(row).lpr_camera?.name ?? '-' }}</td>
-        <td>{{ pairFrom(row).support_camera?.name ?? '-' }}</td>
-        <td>{{ pairFrom(row).direction }}</td>
-        <td>{{ pairFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
-        <td>
-          <div class="row-actions">
-            <BaseButton
-              type="button"
-              variant="secondary"
-              @click="openEdit(pairFrom(row))"
-            >
-              Editar
-            </BaseButton>
-            <BaseButton
-              type="button"
-              variant="danger"
-              @click="deletePair(pairFrom(row))"
-            >
-              Remover
-            </BaseButton>
-          </div>
-        </td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhum par encontrado."
+          :loading="loading"
+          :rows="cameraPairs"
+        >
+          <template #row="{ row }">
+            <td>{{ pairFrom(row).name }}</td>
+            <td>{{ pairFrom(row).lpr_camera?.name ?? '-' }}</td>
+            <td>{{ pairFrom(row).support_camera?.name ?? '-' }}</td>
+            <td>{{ pairFrom(row).direction }}</td>
+            <td>{{ pairFrom(row).is_active ? 'Ativo' : 'Inativo' }}</td>
+            <td>
+              <div class="row-actions">
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  @click="openEdit(pairFrom(row))"
+                >
+                  Editar
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="danger"
+                  @click="deletePair(pairFrom(row))"
+                >
+                  Remover
+                </BaseButton>
+              </div>
+            </td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
 
     <BaseModal
       :open="modalOpen"

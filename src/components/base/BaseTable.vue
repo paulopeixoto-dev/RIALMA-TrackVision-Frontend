@@ -26,8 +26,8 @@ function cellValue(row: unknown, key: string): unknown {
 </script>
 
 <template>
-  <div class="table-wrap">
-    <table class="base-table">
+  <div class="table-wrap va-table-responsive">
+    <table class="va-table va-table--hoverable base-table">
       <thead>
         <tr>
           <th

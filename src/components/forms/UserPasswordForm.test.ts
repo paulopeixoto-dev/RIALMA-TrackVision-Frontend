@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import type { UserPasswordInput } from '@/types/admin'
 import UserPasswordForm from './UserPasswordForm.vue'
 
@@ -19,6 +20,7 @@ describe('UserPasswordForm', () => {
         errors: {},
         submitting: false,
       },
+      global: { plugins: [createVuesticTestPlugin()] },
     })
 
     await wrapper.find('input[name="password"]').setValue('newsecret123')

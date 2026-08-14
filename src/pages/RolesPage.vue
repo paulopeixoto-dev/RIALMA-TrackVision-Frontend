@@ -49,16 +49,20 @@ onMounted(loadRoles)
       {{ error }}
     </BaseAlert>
 
-    <BaseTable
-      :columns="columns"
-      empty-text="Nenhuma role encontrada."
-      :loading="loading"
-      :rows="roles"
-    >
-      <template #row="{ row }">
-        <td>{{ (row as Role).name }}</td>
-        <td>{{ (row as Role).permissions?.join(', ') || '-' }}</td>
-      </template>
-    </BaseTable>
+    <VaCard class="content-panel">
+      <VaCardContent class="content-panel__body">
+        <BaseTable
+          :columns="columns"
+          empty-text="Nenhuma role encontrada."
+          :loading="loading"
+          :rows="roles"
+        >
+          <template #row="{ row }">
+            <td>{{ (row as Role).name }}</td>
+            <td>{{ (row as Role).permissions?.join(', ') || '-' }}</td>
+          </template>
+        </BaseTable>
+      </VaCardContent>
+    </VaCard>
   </section>
 </template>

@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import BaseAlert from '@/components/base/BaseAlert.vue'
+import BaseButton from '@/components/base/BaseButton.vue'
+import BaseInput from '@/components/base/BaseInput.vue'
 import { ApiError } from '@/services/apiClient'
 import { useAuthStore } from '@/stores/authStore'
 
@@ -48,58 +51,52 @@ async function submitLogin(): Promise<void> {
       aria-labelledby="login-title"
       @submit.prevent="submitLogin"
     >
-      <p>Controle operacional</p>
-      <h1 id="login-title">
-        RIALMA TrackVision
-      </h1>
-      <p>Acesso administrativo</p>
+      <VaCard>
+        <VaCardContent class="login-panel__content">
+          <p class="page-eyebrow">
+            Controle operacional
+          </p>
+          <h1 id="login-title">
+            RIALMA TrackVision
+          </h1>
+          <p class="muted">
+            Acesso administrativo
+          </p>
 
-      <p
-        v-if="formError"
-        class="form-error"
-        role="alert"
-      >
-        {{ formError }}
-      </p>
+          <BaseAlert
+            v-if="formError"
+            variant="error"
+          >
+            {{ formError }}
+          </BaseAlert>
 
-      <label class="field">
-        <span>Email</span>
-        <input
-          v-model="email"
-          autocomplete="email"
-          name="email"
-          type="email"
-        >
-      </label>
-      <p
-        v-if="fieldErrors.email"
-        class="field-error"
-      >
-        {{ fieldErrors.email[0] }}
-      </p>
+          <BaseInput
+            :error="fieldErrors.email"
+            autocomplete="email"
+            label="Email"
+            :model-value="email"
+            name="email"
+            type="email"
+            @update:model-value="email = $event"
+          />
+          <BaseInput
+            :error="fieldErrors.password"
+            autocomplete="current-password"
+            label="Senha"
+            :model-value="password"
+            name="password"
+            type="password"
+            @update:model-value="password = $event"
+          />
 
-      <label class="field">
-        <span>Senha</span>
-        <input
-          v-model="password"
-          autocomplete="current-password"
-          name="password"
-          type="password"
-        >
-      </label>
-      <p
-        v-if="fieldErrors.password"
-        class="field-error"
-      >
-        {{ fieldErrors.password[0] }}
-      </p>
-
-      <button
-        :disabled="isSubmitting"
-        type="submit"
-      >
-        {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
-      </button>
+          <BaseButton
+            :loading="isSubmitting"
+            type="submit"
+          >
+            {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
+          </BaseButton>
+        </VaCardContent>
+      </VaCard>
     </form>
   </main>
 </template>

@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import EdgeNodesPage from './EdgeNodesPage.vue'
 
 vi.mock('@/services/edgeNodesService', () => ({
@@ -32,7 +33,11 @@ vi.mock('@/services/locationsService', () => ({
 
 describe('EdgeNodesPage', () => {
   it('renders edge node status and location', async () => {
-    const wrapper = mount(EdgeNodesPage)
+    const wrapper = mount(EdgeNodesPage, {
+      global: {
+        plugins: [createVuesticTestPlugin()],
+      },
+    })
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(wrapper.text()).toContain('Edge Portaria 01')

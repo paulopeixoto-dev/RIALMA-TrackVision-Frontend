@@ -16,7 +16,8 @@
     "lucide-vue-next": "latest",
     "pinia": "latest",
     "vue": "latest",
-    "vue-router": "latest"
+    "vue-router": "latest",
+    "vuestic-ui": "^1.10.3"
   },
   "devDependencies": {
     "@playwright/test": "latest",
@@ -24,8 +25,8 @@
     "@types/node": "latest",
     "@vitejs/plugin-vue": "latest",
     "@vue/eslint-config-typescript": "latest",
-    "@vue/tsconfig": "latest",
     "@vue/test-utils": "latest",
+    "@vue/tsconfig": "latest",
     "eslint": "latest",
     "eslint-plugin-vue": "latest",
     "jsdom": "latest",

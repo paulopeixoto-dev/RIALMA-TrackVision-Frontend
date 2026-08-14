@@ -1,5 +1,6 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it, vi } from 'vitest'
+import { createVuesticTestPlugin } from '@/test/vuestic'
 import CameraPairsPage from './CameraPairsPage.vue'
 
 vi.mock('@/services/cameraPairsService', () => ({
@@ -49,7 +50,9 @@ vi.mock('@/services/camerasService', () => ({ camerasService: { list: vi.fn().mo
 
 describe('CameraPairsPage', () => {
   it('renders paired LPR and support cameras', async () => {
-    const wrapper = mount(CameraPairsPage)
+    const wrapper = mount(CameraPairsPage, {
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
     await new Promise((resolve) => setTimeout(resolve, 0))
 
     expect(wrapper.text()).toContain('Entrada Principal')
