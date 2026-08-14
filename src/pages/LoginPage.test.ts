@@ -60,6 +60,8 @@ describe('LoginPage', () => {
     expect(wrapper.get('[data-test="auth-template"]').classes()).toContain('auth-template')
     expect(wrapper.get('[data-test="auth-brand-panel"]').text()).toContain('RIALMA')
     expect(wrapper.get('[data-test="login-form"]').text()).toContain('Acesso administrativo')
+    expect(wrapper.find('input[name="email"]').attributes('aria-label')).toBe('Email')
+    expect(wrapper.find('input[name="password"]').attributes('aria-label')).toBe('Senha')
     expect(wrapper.find('input[name="email"]').exists()).toBe(true)
     expect(wrapper.find('input[name="password"]').exists()).toBe(true)
   })
