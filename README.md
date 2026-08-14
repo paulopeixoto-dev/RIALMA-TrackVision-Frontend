@@ -41,11 +41,20 @@ npm run e2e
 ## Current Scope
 
 This phase includes login, authenticated admin layout, permission-aware navigation,
-read-only users/roles/permissions, and CRUD screens for vehicles, locations, edge
-nodes, cameras, and camera pairs.
+user management, read-only roles/permissions, and CRUD screens for vehicles,
+locations, edge nodes, cameras, and camera pairs.
 
-Users, roles, and permissions are read-only because the backend currently exposes
-only list endpoints for these resources.
+Roles and permissions are read-only because they remain controlled by the backend
+catalog. Users can be created, edited, deactivated and assigned existing roles.
+
+### User Management
+
+The `/users` admin screen supports creating users, editing profile/status/roles,
+resetting passwords and deactivating users.
+
+Roles are loaded from the backend catalog and sent as role names. The frontend
+does not hide backend security rules; validation and authorization errors are
+shown from API responses.
 
 ### Pagina de Viagens
 
