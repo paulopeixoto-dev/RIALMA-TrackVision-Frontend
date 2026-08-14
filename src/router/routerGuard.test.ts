@@ -6,7 +6,7 @@ import { createAppRouter } from './index'
 vi.mock('@/services/authService', () => ({
   authService: {
     logout: vi.fn().mockResolvedValue(undefined),
-    me: vi.fn().mockResolvedValue({ id: 1, name: 'Paulo', email: 'paulo@example.com' }),
+    me: vi.fn().mockResolvedValue({ id: 1, name: 'Paulo', email: 'paulo@example.com', is_active: true }),
   },
 }))
 
@@ -34,7 +34,7 @@ describe('router guards', () => {
   it('redirects authenticated users without route permission to forbidden', async () => {
     const store = useAuthStore()
     store.token = 'token-123'
-    store.user = { id: 1, name: 'Paulo', email: 'paulo@example.com' }
+    store.user = { id: 1, name: 'Paulo', email: 'paulo@example.com', is_active: true }
     store.permissions = []
 
     const router = createAppRouter()
@@ -48,7 +48,7 @@ describe('router guards', () => {
   it('allows authenticated users with captures view to access trips', async () => {
     const store = useAuthStore()
     store.token = 'token-123'
-    store.user = { id: 1, name: 'Paulo', email: 'paulo@example.com' }
+    store.user = { id: 1, name: 'Paulo', email: 'paulo@example.com', is_active: true }
     store.permissions = ['captures.view']
 
     const router = createAppRouter()

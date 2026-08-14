@@ -1,11 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import type { UserFormInput } from '@/types/admin'
 import UserForm from './UserForm.vue'
 
 describe('UserForm', () => {
   it('emits user data with selected roles', async () => {
     async function syncModel(): Promise<void> {
-      const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0]
+      const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as UserFormInput
       await wrapper.setProps({ modelValue: emitted })
     }
 

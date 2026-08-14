@@ -1,11 +1,12 @@
 import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
+import type { UserPasswordInput } from '@/types/admin'
 import UserPasswordForm from './UserPasswordForm.vue'
 
 describe('UserPasswordForm', () => {
   it('emits the new password payload', async () => {
     async function syncModel(): Promise<void> {
-      const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0]
+      const emitted = wrapper.emitted('update:modelValue')?.at(-1)?.[0] as UserPasswordInput
       await wrapper.setProps({ modelValue: emitted })
     }
 
