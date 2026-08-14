@@ -13,6 +13,7 @@ const router = useRouter()
 
 const email = ref('')
 const password = ref('')
+const passwordVisible = ref(false)
 const isSubmitting = ref(false)
 const formError = ref('')
 const fieldErrors = ref<Record<string, string[]>>({})
@@ -45,58 +46,104 @@ async function submitLogin(): Promise<void> {
 </script>
 
 <template>
-  <main class="login-shell">
-    <form
-      class="login-panel"
-      aria-labelledby="login-title"
-      @submit.prevent="submitLogin"
+  <main
+    class="auth-template"
+    data-test="auth-template"
+  >
+    <section
+      class="auth-template__brand"
+      data-test="auth-brand-panel"
     >
-      <VaCard>
-        <VaCardContent class="login-panel__content">
-          <p class="page-eyebrow">
-            Controle operacional
-          </p>
-          <h1 id="login-title">
-            RIALMA TrackVision
-          </h1>
-          <p class="muted">
-            Acesso administrativo
-          </p>
+      <RouterLink
+        class="auth-template__brand-mark"
+        :to="{ name: 'login' }"
+      >
+        <span>RIALMA</span>
+        <strong>TrackVision</strong>
+      </RouterLink>
 
-          <BaseAlert
-            v-if="formError"
-            variant="error"
+      <div class="auth-template__copy">
+        <p class="page-eyebrow">
+          Controle operacional
+        </p>
+        <h1>Monitoramento de acessos e viagens</h1>
+        <p>
+          Gestao segura para veiculos, cameras, viagens e relatorios operacionais.
+        </p>
+      </div>
+
+      <div class="auth-template__status">
+        <span>Servidor local</span>
+        <strong>Pronto para operacao offline</strong>
+      </div>
+    </section>
+
+    <section class="auth-template__content">
+      <VaCard class="auth-card">
+        <VaCardContent class="auth-card__content">
+          <VaForm
+            class="auth-form"
+            data-test="login-form"
+            aria-labelledby="login-title"
+            @submit.prevent="submitLogin"
           >
-            {{ formError }}
-          </BaseAlert>
+            <p class="page-eyebrow">
+              Acesso administrativo
+            </p>
+            <h2 id="login-title">
+              RIALMA TrackVision
+            </h2>
+            <p class="muted">
+              Entre com seu usuario autorizado.
+            </p>
 
-          <BaseInput
-            :error="fieldErrors.email"
-            autocomplete="email"
-            label="Email"
-            :model-value="email"
-            name="email"
-            type="email"
-            @update:model-value="email = $event"
-          />
-          <BaseInput
-            :error="fieldErrors.password"
-            autocomplete="current-password"
-            label="Senha"
-            :model-value="password"
-            name="password"
-            type="password"
-            @update:model-value="password = $event"
-          />
+            <BaseAlert
+              v-if="formError"
+              variant="error"
+            >
+              {{ formError }}
+            </BaseAlert>
 
-          <BaseButton
-            :loading="isSubmitting"
-            type="submit"
-          >
-            {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
-          </BaseButton>
+            <BaseInput
+              :error="fieldErrors.email"
+              autocomplete="email"
+              label="Email"
+              :model-value="email"
+              name="email"
+              type="email"
+              @update:model-value="email = $event"
+            />
+            <div class="password-field">
+              <BaseInput
+                :error="fieldErrors.password"
+                autocomplete="current-password"
+                label="Senha"
+                :model-value="password"
+                name="password"
+                :type="passwordVisible ? 'text' : 'password'"
+                @update:model-value="password = $event"
+              />
+              <button
+                class="password-field__toggle"
+                data-test="password-visibility"
+                type="button"
+                :aria-label="passwordVisible ? 'Ocultar senha' : 'Mostrar senha'"
+                @click="passwordVisible = !passwordVisible"
+              >
+                {{ passwordVisible ? 'Ocultar' : 'Mostrar' }}
+              </button>
+            </div>
+
+            <BaseButton
+              class="auth-form__submit"
+              :loading="isSubmitting"
+              type="submit"
+            >
+              {{ isSubmitting ? 'Entrando...' : 'Entrar' }}
+            </BaseButton>
+          </VaForm>
         </VaCardContent>
       </VaCard>
-    </form>
+    </section>
   </main>
 </template>
