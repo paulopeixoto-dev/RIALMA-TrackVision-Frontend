@@ -417,95 +417,95 @@ onBeforeUnmount(() => {
             Selecione uma viagem para revisar imagens e carga.
           </p>
           <template v-else>
-          <h2>{{ selectedTrip.vehicle?.plate ?? 'Sem placa' }}</h2>
-          <p class="muted">
-            {{ selectedTrip.location?.name ?? '-' }} &middot; {{ statusLabel(selectedTrip.status) }}
-          </p>
-          <p
-            v-if="selectedTrip.review_required_reason"
-            class="review-reason"
-          >
-            {{ selectedTrip.review_required_reason }}
-          </p>
-
-          <article
-            v-for="event in selectedTrip.events ?? []"
-            :key="event.id"
-            class="trip-event"
-          >
-            <header>
-              <strong>{{ directionLabel(event.direction) }}</strong>
-              <span>{{ formatDate(event.occurred_at) }}</span>
-            </header>
-            <p>{{ event.capture.camera_pair?.name ?? '-' }} &middot; {{ loadLabel(event.load_status) }}</p>
-
-            <div class="media-grid">
-              <figure>
-                <figcaption>LPR</figcaption>
-                <img
-                  v-if="mediaUrl(event, 'lpr_image')"
-                  alt="Imagem LPR da viagem"
-                  :src="mediaUrl(event, 'lpr_image')"
-                >
-                <span v-else>Sem imagem LPR</span>
-              </figure>
-              <figure>
-                <figcaption>Apoio</figcaption>
-                <img
-                  v-if="mediaUrl(event, 'support_image')"
-                  alt="Imagem de apoio da viagem"
-                  :src="mediaUrl(event, 'support_image')"
-                >
-                <span v-else>Sem imagem de apoio</span>
-              </figure>
-            </div>
-
-            <div
-              v-if="canManageTrips"
-              class="row-actions"
+            <h2>{{ selectedTrip.vehicle?.plate ?? 'Sem placa' }}</h2>
+            <p class="muted">
+              {{ selectedTrip.location?.name ?? '-' }} &middot; {{ statusLabel(selectedTrip.status) }}
+            </p>
+            <p
+              v-if="selectedTrip.review_required_reason"
+              class="review-reason"
             >
-              <BaseButton
-                type="button"
-                :disabled="savingEventId === event.id"
-                @click="updateLoadStatus(event, 'loaded')"
-              >
-                Carregado
-              </BaseButton>
-              <BaseButton
-                type="button"
-                variant="secondary"
-                :disabled="savingEventId === event.id"
-                @click="updateLoadStatus(event, 'empty')"
-              >
-                Vazio
-              </BaseButton>
-              <BaseButton
-                type="button"
-                variant="secondary"
-                :disabled="savingEventId === event.id"
-                @click="updateLoadStatus(event, 'needs_review')"
-              >
-                Precisa revisao
-              </BaseButton>
-            </div>
+              {{ selectedTrip.review_required_reason }}
+            </p>
 
-            <section
-              v-if="event.load_status_audits?.length"
-              class="audit-timeline"
+            <article
+              v-for="event in selectedTrip.events ?? []"
+              :key="event.id"
+              class="trip-event"
             >
-              <h3>Historico de carga</h3>
-              <ol>
-                <li
-                  v-for="audit in event.load_status_audits"
-                  :key="audit.id"
+              <header>
+                <strong>{{ directionLabel(event.direction) }}</strong>
+                <span>{{ formatDate(event.occurred_at) }}</span>
+              </header>
+              <p>{{ event.capture.camera_pair?.name ?? '-' }} &middot; {{ loadLabel(event.load_status) }}</p>
+
+              <div class="media-grid">
+                <figure>
+                  <figcaption>LPR</figcaption>
+                  <img
+                    v-if="mediaUrl(event, 'lpr_image')"
+                    alt="Imagem LPR da viagem"
+                    :src="mediaUrl(event, 'lpr_image')"
+                  >
+                  <span v-else>Sem imagem LPR</span>
+                </figure>
+                <figure>
+                  <figcaption>Apoio</figcaption>
+                  <img
+                    v-if="mediaUrl(event, 'support_image')"
+                    alt="Imagem de apoio da viagem"
+                    :src="mediaUrl(event, 'support_image')"
+                  >
+                  <span v-else>Sem imagem de apoio</span>
+                </figure>
+              </div>
+
+              <div
+                v-if="canManageTrips"
+                class="row-actions"
+              >
+                <BaseButton
+                  type="button"
+                  :disabled="savingEventId === event.id"
+                  @click="updateLoadStatus(event, 'loaded')"
                 >
-                  <span>{{ auditLabel(audit) }}</span>
-                  <small>{{ formatDate(audit.changed_at) }}</small>
-                </li>
-              </ol>
-            </section>
-          </article>
-        </template>
+                  Carregado
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  :disabled="savingEventId === event.id"
+                  @click="updateLoadStatus(event, 'empty')"
+                >
+                  Vazio
+                </BaseButton>
+                <BaseButton
+                  type="button"
+                  variant="secondary"
+                  :disabled="savingEventId === event.id"
+                  @click="updateLoadStatus(event, 'needs_review')"
+                >
+                  Precisa revisao
+                </BaseButton>
+              </div>
+
+              <section
+                v-if="event.load_status_audits?.length"
+                class="audit-timeline"
+              >
+                <h3>Historico de carga</h3>
+                <ol>
+                  <li
+                    v-for="audit in event.load_status_audits"
+                    :key="audit.id"
+                  >
+                    <span>{{ auditLabel(audit) }}</span>
+                    <small>{{ formatDate(audit.changed_at) }}</small>
+                  </li>
+                </ol>
+              </section>
+            </article>
+          </template>
         </VaCardContent>
       </VaCard>
     </div>
@@ -543,23 +543,17 @@ onBeforeUnmount(() => {
   margin-top: 12px;
 }
 
-.trip-detail {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  padding: 16px;
-}
-
 .muted {
-  color: var(--color-muted);
+  color: var(--va-text-secondary);
 }
 
 .review-reason {
-  color: var(--color-danger);
+  color: var(--va-danger);
   font-weight: 600;
 }
 
 .trip-event {
-  border-top: 1px solid var(--color-border);
+  border-top: 1px solid var(--va-background-border);
   padding: 16px 0;
 }
 
@@ -587,14 +581,14 @@ onBeforeUnmount(() => {
 }
 
 .audit-timeline li {
-  border-left: 3px solid var(--color-border);
+  border-left: 3px solid var(--va-background-border);
   display: grid;
   gap: 2px;
   padding-left: 8px;
 }
 
 .audit-timeline small {
-  color: var(--color-muted);
+  color: var(--va-text-secondary);
 }
 
 .media-grid {
