@@ -38,6 +38,16 @@ npm run build
 npm run e2e
 ```
 
+### CI Local
+
+O workflow `Frontend CI` do GitHub Actions roda os comandos equivalentes:
+
+```bash
+npm run lint
+npm test -- --run
+npm run build
+```
+
 ## Current Scope
 
 This phase includes login, authenticated admin layout, permission-aware navigation,
