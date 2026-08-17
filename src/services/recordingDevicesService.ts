@@ -9,8 +9,8 @@ const client = createApiClient({
 })
 
 export const recordingDevicesService = {
-  list(): Promise<LaravelPaginated<RecordingDevice>> {
-    return client.get<LaravelPaginated<RecordingDevice>>('/admin/recording-devices')
+  list(page = 1): Promise<LaravelPaginated<RecordingDevice>> {
+    return client.get<LaravelPaginated<RecordingDevice>>(`/admin/recording-devices?page=${page}`)
   },
 
   async create(input: RecordingDeviceInput): Promise<RecordingDevice> {

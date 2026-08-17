@@ -60,12 +60,17 @@ const locations = ref<Location[]>([])
 const edgeNodes = ref<EdgeNode[]>([])
 const selectedLocationId = ref<number | null>(null)
 const loading = ref(true)
+const devicesCurrentPage = ref(1)
+const devicesLastPage = ref(1)
+const sourcesCurrentPage = ref(1)
+const sourcesLastPage = ref(1)
 const submittingDevice = ref(false)
 const submittingSource = ref(false)
 const deviceModalOpen = ref(false)
 const sourceModalOpen = ref(false)
 const editingDevice = ref<RecordingDevice | null>(null)
 const editingSource = ref<CameraRecordingSource | null>(null)
+const pendingRemovalSource = ref<CameraRecordingSource | null>(null)
 const deviceForm = ref<RecordingDeviceInput>({ ...emptyDeviceForm })
 const sourceForm = ref<CameraRecordingSourceInput>({ ...emptySourceForm })
 const deviceErrors = ref<FieldErrors>({})
@@ -89,20 +94,37 @@ function sourceFrom(row: unknown): CameraRecordingSource {
   return row as CameraRecordingSource
 }
 
+function paginationValue(meta: Record<string, unknown> | undefined, key: string, fallback: number): number {
+  const value = meta?.[key]
+  return typeof value === 'number' && Number.isInteger(value) && value > 0 ? value : fallback
+}
+
+function applyDevicesResponse(response: Awaited<ReturnType<typeof recordingDevicesService.list>>, fallbackPage: number): void {
+  devices.value = response.data
+  devicesCurrentPage.value = paginationValue(response.meta, 'current_page', fallbackPage)
+  devicesLastPage.value = paginationValue(response.meta, 'last_page', 1)
+}
+
+function applySourcesResponse(response: Awaited<ReturnType<typeof cameraRecordingSourcesService.list>>, fallbackPage: number): void {
+  sources.value = response.data
+  sourcesCurrentPage.value = paginationValue(response.meta, 'current_page', fallbackPage)
+  sourcesLastPage.value = paginationValue(response.meta, 'last_page', 1)
+}
+
 async function loadData(): Promise<void> {
   loading.value = true
   error.value = ''
 
   try {
     const [devicesResponse, sourcesResponse, camerasResponse, locationsResponse, edgeNodesResponse] = await Promise.all([
-      recordingDevicesService.list(),
-      cameraRecordingSourcesService.list(),
+      recordingDevicesService.list(devicesCurrentPage.value),
+      cameraRecordingSourcesService.list(sourcesCurrentPage.value),
       camerasService.list(),
       locationsService.list(),
       edgeNodesService.list(),
     ])
-    devices.value = devicesResponse.data
-    sources.value = sourcesResponse.data
+    applyDevicesResponse(devicesResponse, devicesCurrentPage.value)
+    applySourcesResponse(sourcesResponse, sourcesCurrentPage.value)
     cameras.value = camerasResponse.data
     locations.value = locationsResponse.data
     edgeNodes.value = edgeNodesResponse.data
@@ -110,6 +132,56 @@ async function loadData(): Promise<void> {
     error.value = 'Nao foi possivel carregar gravadores e mapeamentos.'
   } finally {
     loading.value = false
+  }
+}
+
+async function loadDevices(page: number): Promise<void> {
+  loading.value = true
+  error.value = ''
+
+  try {
+    applyDevicesResponse(await recordingDevicesService.list(page), page)
+  } catch {
+    error.value = 'Nao foi possivel carregar gravadores/NVRs.'
+  } finally {
+    loading.value = false
+  }
+}
+
+async function loadSources(page: number): Promise<void> {
+  loading.value = true
+  error.value = ''
+
+  try {
+    applySourcesResponse(await cameraRecordingSourcesService.list(page), page)
+  } catch {
+    error.value = 'Nao foi possivel carregar mapeamentos.'
+  } finally {
+    loading.value = false
+  }
+}
+
+function previousDevicesPage(): void {
+  if (devicesCurrentPage.value > 1) {
+    void loadDevices(devicesCurrentPage.value - 1)
+  }
+}
+
+function nextDevicesPage(): void {
+  if (devicesCurrentPage.value < devicesLastPage.value) {
+    void loadDevices(devicesCurrentPage.value + 1)
+  }
+}
+
+function previousSourcesPage(): void {
+  if (sourcesCurrentPage.value > 1) {
+    void loadSources(sourcesCurrentPage.value - 1)
+  }
+}
+
+function nextSourcesPage(): void {
+  if (sourcesCurrentPage.value < sourcesLastPage.value) {
+    void loadSources(sourcesCurrentPage.value + 1)
   }
 }
 
@@ -252,14 +324,22 @@ async function saveSource(): Promise<void> {
   }
 }
 
-async function removeSource(source: CameraRecordingSource): Promise<void> {
-  if (!window.confirm(`Remover mapeamento da camera ${source.camera?.name ?? ''}?`)) {
-    return
-  }
+function openRemoveSource(source: CameraRecordingSource): void {
+  pendingRemovalSource.value = source
+}
+
+function closeRemoveSourceModal(): void {
+  pendingRemovalSource.value = null
+}
+
+async function removeSource(): Promise<void> {
+  const source = pendingRemovalSource.value
+  if (!source) return
 
   try {
     await cameraRecordingSourcesService.remove(source)
     success.value = 'Mapeamento removido.'
+    closeRemoveSourceModal()
     await loadData()
   } catch {
     error.value = 'Nao foi possivel remover o mapeamento.'
@@ -372,6 +452,32 @@ onMounted(loadData)
             </div>
           </template>
         </VaDataTable>
+        <div
+          v-if="devicesLastPage > 1"
+          class="pagination-row"
+        >
+          <VaButton
+            class="base-button"
+            color="secondary"
+            data-test="devices-previous-page"
+            type="button"
+            :disabled="loading || devicesCurrentPage === 1"
+            @click="previousDevicesPage"
+          >
+            Anterior
+          </VaButton>
+          <span class="muted">Pagina {{ devicesCurrentPage }} de {{ devicesLastPage }}</span>
+          <VaButton
+            class="base-button"
+            color="secondary"
+            data-test="devices-next-page"
+            type="button"
+            :disabled="loading || devicesCurrentPage === devicesLastPage"
+            @click="nextDevicesPage"
+          >
+            Proxima
+          </VaButton>
+        </div>
       </VaCardContent>
     </VaCard>
 
@@ -415,13 +521,40 @@ onMounted(loadData)
                 class="base-button"
                 color="danger"
                 type="button"
-                @click="removeSource(sourceFrom(rowData))"
+                data-test="remove-recording-source"
+                @click="openRemoveSource(sourceFrom(rowData))"
               >
                 Remover
               </VaButton>
             </div>
           </template>
         </VaDataTable>
+        <div
+          v-if="sourcesLastPage > 1"
+          class="pagination-row"
+        >
+          <VaButton
+            class="base-button"
+            color="secondary"
+            data-test="sources-previous-page"
+            type="button"
+            :disabled="loading || sourcesCurrentPage === 1"
+            @click="previousSourcesPage"
+          >
+            Anterior
+          </VaButton>
+          <span class="muted">Pagina {{ sourcesCurrentPage }} de {{ sourcesLastPage }}</span>
+          <VaButton
+            class="base-button"
+            color="secondary"
+            data-test="sources-next-page"
+            type="button"
+            :disabled="loading || sourcesCurrentPage === sourcesLastPage"
+            @click="nextSourcesPage"
+          >
+            Proxima
+          </VaButton>
+        </div>
       </VaCardContent>
     </VaCard>
 
@@ -485,6 +618,45 @@ onMounted(loadData)
           @cancel="closeSourceModal"
           @submit="saveSource"
         />
+      </div>
+    </VaModal>
+
+    <VaModal
+      :model-value="Boolean(pendingRemovalSource)"
+      hide-default-actions
+      max-width="480px"
+      @update:model-value="!$event && closeRemoveSourceModal()"
+    >
+      <template #header>
+        <div class="base-modal__header">
+          <h2>Remover mapeamento</h2>
+          <VaButton
+            aria-label="Fechar"
+            icon="close"
+            preset="plain"
+            @click="closeRemoveSourceModal"
+          />
+        </div>
+      </template>
+      <div class="base-modal__body">
+        <p>Remover o mapeamento da camera {{ pendingRemovalSource?.camera?.name ?? '' }}?</p>
+        <div class="form-actions">
+          <VaButton
+            class="base-button"
+            color="danger"
+            data-test="confirm-remove-recording-source"
+            @click="removeSource"
+          >
+            Remover
+          </VaButton>
+          <VaButton
+            class="base-button"
+            preset="plain"
+            @click="closeRemoveSourceModal"
+          >
+            Cancelar
+          </VaButton>
+        </div>
       </div>
     </VaModal>
   </section>
