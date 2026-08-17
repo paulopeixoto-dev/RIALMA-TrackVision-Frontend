@@ -1,5 +1,7 @@
 import type { FieldErrors } from '@/types/api'
 
+const sessionKeys = ['trackvision.token', 'trackvision.user', 'trackvision.permissions']
+
 export class ApiError extends Error {
   readonly isUnauthorized: boolean
   readonly isForbidden: boolean
@@ -24,6 +26,11 @@ export interface ApiClientOptions {
 
 function joinUrl(baseUrl: string, path: string): string {
   return `${baseUrl.replace(/\/$/, '')}/${path.replace(/^\//, '')}`
+}
+
+function clearPersistedSession(): void {
+  sessionKeys.forEach((key) => localStorage.removeItem(key))
+  window.dispatchEvent(new CustomEvent('trackvision:unauthorized'))
 }
 
 export function createApiClient(options: ApiClientOptions) {
@@ -52,6 +59,7 @@ export function createApiClient(options: ApiClientOptions) {
       }
 
       if (response.status === 401) {
+        clearPersistedSession()
         options.onUnauthorized?.()
       }
 

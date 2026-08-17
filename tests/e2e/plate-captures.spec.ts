@@ -4,7 +4,10 @@ test('validates plate captures with LPR image evidence', async ({ page }) => {
   const email = process.env.E2E_ADMIN_EMAIL
   const password = process.env.E2E_ADMIN_PASSWORD
 
-  test.skip(!email || !password, 'E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD are required.')
+  if (!email || !password) {
+    test.skip(true, 'E2E_ADMIN_EMAIL and E2E_ADMIN_PASSWORD are required.')
+    return
+  }
 
   await page.goto('/login?redirect=/trips')
   await page.waitForTimeout(1000)

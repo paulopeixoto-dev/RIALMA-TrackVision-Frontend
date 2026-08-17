@@ -4,6 +4,7 @@ import { ApiError, createApiClient } from './apiClient'
 describe('apiClient', () => {
   beforeEach(() => {
     vi.unstubAllGlobals()
+    localStorage.clear()
   })
 
   it('normalizes validation errors from Laravel responses', async () => {
@@ -45,5 +46,35 @@ describe('apiClient', () => {
 
     expect(init.method).toBe('HEAD')
     expect(headers.get('Authorization')).toBe('Bearer abc')
+  })
+
+  it('clears persisted session when the API rejects an invalid token', async () => {
+    localStorage.setItem('trackvision.token', 'stale-token')
+    localStorage.setItem('trackvision.user', JSON.stringify({ id: 1 }))
+    localStorage.setItem('trackvision.permissions', JSON.stringify(['captures.view']))
+    const unauthorizedListener = vi.fn()
+    window.addEventListener('trackvision:unauthorized', unauthorizedListener)
+
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        json: async () => ({ message: 'Unauthenticated.' }),
+      }),
+    )
+
+    const client = createApiClient({
+      apiBaseUrl: 'http://api.test',
+      getToken: () => localStorage.getItem('trackvision.token'),
+    })
+
+    await expect(client.get('/admin/trips')).rejects.toMatchObject({ status: 401 })
+
+    expect(localStorage.getItem('trackvision.token')).toBeNull()
+    expect(localStorage.getItem('trackvision.user')).toBeNull()
+    expect(localStorage.getItem('trackvision.permissions')).toBeNull()
+    expect(unauthorizedListener).toHaveBeenCalledOnce()
+    window.removeEventListener('trackvision:unauthorized', unauthorizedListener)
   })
 })
