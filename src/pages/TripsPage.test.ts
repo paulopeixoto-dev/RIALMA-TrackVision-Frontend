@@ -6,6 +6,7 @@ import { reportsService } from '@/services/reportsService'
 import { useAuthStore } from '@/stores/authStore'
 import { tripsService } from '@/services/tripsService'
 import { createVuesticTestPlugin } from '@/test/vuestic'
+import type { TripEvent } from '@/types/admin'
 import TripsPage from './TripsPage.vue'
 
 const { trip, detailedTrip } = vi.hoisted(() => {
@@ -61,6 +62,13 @@ vi.mock('@/services/tripsService', () => ({
     list: vi.fn().mockResolvedValue({ data: [trip] }),
     show: vi.fn().mockResolvedValue(detailedTrip),
     updateLoadStatus: vi.fn().mockResolvedValue({ ...detailedTrip.events[0], load_status: 'loaded' }),
+    requestSupportImageRecovery: vi.fn().mockResolvedValue({
+      status: 'pending',
+      attempts: 0,
+      last_error: null,
+      next_attempt_at: null,
+      updated_at: null,
+    }),
   },
 }))
 
@@ -88,6 +96,18 @@ function mountTripsPage() {
   })
 }
 
+function mockTripsShow(events: TripEvent[]): void {
+  vi.mocked(tripsService.show).mockResolvedValue({ ...detailedTrip, events } as never)
+}
+
+async function mountTripsPageAndSelectFirstTrip() {
+  const wrapper = mountTripsPage()
+  await waitForPromises()
+  await wrapper.get('[data-test="select-trip"]').trigger('click')
+  await waitForPromises()
+  return wrapper
+}
+
 function deferred<T>(): { promise: Promise<T>; resolve: (value: T) => void } {
   let resolve!: (value: T) => void
   const promise = new Promise<T>((next) => {
@@ -103,6 +123,13 @@ describe('TripsPage', () => {
     vi.mocked(tripsService.list).mockReset().mockResolvedValue({ data: [trip] } as never)
     vi.mocked(tripsService.show).mockReset().mockResolvedValue(detailedTrip as never)
     vi.mocked(tripsService.updateLoadStatus).mockReset().mockResolvedValue({ ...detailedTrip.events[0], load_status: 'loaded' } as never)
+    vi.mocked(tripsService.requestSupportImageRecovery).mockReset().mockResolvedValue({
+      status: 'pending',
+      attempts: 0,
+      last_error: null,
+      next_attempt_at: null,
+      updated_at: null,
+    } as never)
     vi.mocked(mediaAssetsService.fetchObjectUrl).mockReset().mockResolvedValue('blob:image-url')
     vi.mocked(mediaAssetsService.revokeObjectUrl).mockReset()
     vi.mocked(reportsService.downloadCsv).mockReset().mockResolvedValue(undefined)
@@ -127,6 +154,47 @@ describe('TripsPage', () => {
 
     expect(wrapper.text()).toContain('Entrada 01')
     expect(wrapper.findAll('img')).toHaveLength(2)
+  })
+
+  it('shows pending support image recovery when support image is missing', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['trips.manage']
+    mockTripsShow([{
+      id: 10,
+      uuid: 'event-uuid',
+      direction: 'outbound',
+      load_status: 'unknown',
+      occurred_at: '2026-08-17T10:30:15Z',
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z' },
+      media: { lpr_image: null, support_image: null },
+      support_image_recovery: { status: 'pending', attempts: 1, last_error: null, next_attempt_at: null, updated_at: null },
+    }])
+
+    const wrapper = await mountTripsPageAndSelectFirstTrip()
+
+    expect(wrapper.text()).toContain('Recuperacao pendente')
+    expect(wrapper.find('[data-test="request-support-recovery"]').exists()).toBe(true)
+  })
+
+  it('requests manual recovery through the trips service', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['trips.manage']
+    mockTripsShow([{
+      id: 10,
+      uuid: 'event-uuid',
+      direction: 'outbound',
+      load_status: 'unknown',
+      occurred_at: '2026-08-17T10:30:15Z',
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z' },
+      media: { lpr_image: null, support_image: null },
+    }])
+
+    const wrapper = await mountTripsPageAndSelectFirstTrip()
+    await wrapper.get('[data-test="request-support-recovery"]').trigger('click')
+    await waitForPromises()
+
+    expect(tripsService.requestSupportImageRecovery).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }))
+    expect(wrapper.text()).toContain('Recuperacao solicitada.')
   })
 
   it('clears the previous detail when a newly selected trip fails to load', async () => {

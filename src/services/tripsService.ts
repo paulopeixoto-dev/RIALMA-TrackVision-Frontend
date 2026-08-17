@@ -1,6 +1,6 @@
 import { getAppConfig } from '@/app/config'
 import type { LaravelPaginated, LaravelResource } from '@/types/api'
-import type { LoadStatus, Trip, TripEvent, TripFilters } from '@/types/admin'
+import type { LoadStatus, SupportImageRecoveryAttempt, Trip, TripEvent, TripFilters } from '@/types/admin'
 import { createApiClient } from './apiClient'
 
 const client = createApiClient({
@@ -39,6 +39,14 @@ export const tripsService = {
     const response = await client.patch<LaravelResource<TripEvent>>(
       `/admin/trip-events/${tripEvent.id}/load-status`,
       { load_status: loadStatus },
+    )
+    return response.data
+  },
+
+  async requestSupportImageRecovery(tripEvent: TripEvent): Promise<SupportImageRecoveryAttempt> {
+    const response = await client.post<LaravelResource<SupportImageRecoveryAttempt>>(
+      `/admin/captures/${tripEvent.capture.id}/support-image-recovery`,
+      {},
     )
     return response.data
   },

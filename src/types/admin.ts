@@ -127,6 +127,16 @@ export type RecordingDeviceAuthType = 'digest' | 'basic' | 'none'
 export type RecordingStream = 'main' | 'sub'
 export type MediaRecoveryStatus = 'pending_configuration' | 'pending' | 'running' | 'recovered' | 'not_found' | 'failed'
 
+export interface SupportImageRecoveryAttempt {
+  id?: number
+  uuid?: string
+  status: MediaRecoveryStatus
+  attempts: number
+  last_error: string | null
+  next_attempt_at: string | null
+  updated_at: string | null
+}
+
 export interface RecordingDevice {
   id: number
   uuid: string
@@ -228,6 +238,7 @@ export interface TripEvent {
     lpr_image?: TripMediaAsset | null
     support_image?: TripMediaAsset | null
   }
+  support_image_recovery?: SupportImageRecoveryAttempt | null
   load_status_audits?: TripEventLoadStatusAudit[]
 }
 

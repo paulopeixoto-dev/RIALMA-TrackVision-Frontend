@@ -50,4 +50,25 @@ describe('tripsService', () => {
     expect(fetchMock.mock.calls[0][1].method).toBe('PATCH')
     expect(fetchMock.mock.calls[0][1].body).toBe(JSON.stringify({ load_status: 'loaded' }))
   })
+
+  it('requests support image recovery for the capture event', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({
+      data: {
+        id: 12,
+        uuid: 'recovery-uuid',
+        status: 'pending',
+        attempts: 1,
+        last_error: null,
+        next_attempt_at: null,
+        updated_at: '2026-08-17T10:30:15Z',
+      },
+    }), { status: 202 }))
+
+    const attempt = await tripsService.requestSupportImageRecovery({ capture: { id: 99 } } as never)
+
+    expect(attempt).toMatchObject({ id: 12, status: 'pending', attempts: 1 })
+    expect(fetchMock.mock.calls[0][0]).toContain('/admin/captures/99/support-image-recovery')
+    expect(fetchMock.mock.calls[0][1].method).toBe('POST')
+    expect(fetchMock.mock.calls[0][1].body).toBe(JSON.stringify({}))
+  })
 })

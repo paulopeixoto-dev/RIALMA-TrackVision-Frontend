@@ -4,7 +4,7 @@ import { mediaAssetsService } from '@/services/mediaAssetsService'
 import { reportsService } from '@/services/reportsService'
 import { tripsService } from '@/services/tripsService'
 import { useAuthStore } from '@/stores/authStore'
-import type { LoadStatus, Trip, TripEvent, TripEventLoadStatusAudit, TripFilters } from '@/types/admin'
+import type { LoadStatus, MediaRecoveryStatus, Trip, TripEvent, TripEventLoadStatusAudit, TripFilters } from '@/types/admin'
 
 const authStore = useAuthStore()
 const columns = [
@@ -40,6 +40,7 @@ const selectedTrip = ref<Trip | null>(null)
 const loading = ref(true)
 const detailLoading = ref(false)
 const savingEventId = ref<number | null>(null)
+const recoveringEventId = ref<number | null>(null)
 const error = ref('')
 const success = ref('')
 const filters = ref<Required<Pick<TripFilters, 'status' | 'plate' | 'load_status' | 'date_from' | 'date_to' | 'direction'>>>({
@@ -73,6 +74,28 @@ function loadLabel(loadStatus: string): string {
 
 function directionLabel(direction: string): string {
   return ({ outbound: 'Ida', inbound: 'Volta', unknown: 'Indefinida' } as Record<string, string>)[direction] ?? direction
+}
+
+function recoveryLabel(status: MediaRecoveryStatus): string {
+  return ({
+    pending_configuration: 'NVR nao configurado',
+    pending: 'Recuperacao pendente',
+    running: 'Recuperando imagem',
+    recovered: 'Imagem recuperada',
+    not_found: 'Imagem nao encontrada no NVR',
+    failed: 'Falha na recuperacao',
+  } as Record<MediaRecoveryStatus, string>)[status]
+}
+
+function recoveryColor(status: MediaRecoveryStatus): 'secondary' | 'info' | 'success' | 'warning' | 'danger' {
+  return ({
+    pending_configuration: 'warning',
+    pending: 'secondary',
+    running: 'info',
+    recovered: 'success',
+    not_found: 'warning',
+    failed: 'danger',
+  } as Record<MediaRecoveryStatus, 'secondary' | 'info' | 'success' | 'warning' | 'danger'>)[status]
 }
 
 function dateInputValue(date: Date): string {
@@ -232,6 +255,21 @@ async function updateLoadStatus(event: TripEvent, loadStatus: LoadStatus): Promi
     error.value = 'Nao foi possivel atualizar a carga.'
   } finally {
     savingEventId.value = null
+  }
+}
+
+async function requestSupportRecovery(event: TripEvent): Promise<void> {
+  recoveringEventId.value = event.id
+  success.value = ''
+  error.value = ''
+
+  try {
+    event.support_image_recovery = await tripsService.requestSupportImageRecovery(event)
+    success.value = 'Recuperacao solicitada.'
+  } catch {
+    error.value = 'Nao foi possivel solicitar recuperacao.'
+  } finally {
+    recoveringEventId.value = null
   }
 }
 
@@ -495,6 +533,29 @@ onBeforeUnmount(() => {
                 </figure>
               </div>
 
+              <VaAlert
+                v-if="!event.media.support_image && event.support_image_recovery"
+                class="recovery-alert"
+                :color="recoveryColor(event.support_image_recovery.status)"
+              >
+                {{ recoveryLabel(event.support_image_recovery.status) }}
+                <span v-if="event.support_image_recovery.last_error">
+                  {{ event.support_image_recovery.last_error }}
+                </span>
+              </VaAlert>
+
+              <VaButton
+                v-if="canManageTrips && !event.media.support_image"
+                class="base-button"
+                color="secondary"
+                data-test="request-support-recovery"
+                type="button"
+                :loading="recoveringEventId === event.id"
+                @click="requestSupportRecovery(event)"
+              >
+                Recuperar apoio
+              </VaButton>
+
               <div
                 v-if="canManageTrips"
                 class="row-actions"
@@ -637,6 +698,10 @@ onBeforeUnmount(() => {
 
 .media-grid figure {
   margin: 0;
+}
+
+.recovery-alert {
+  margin-top: 12px;
 }
 
 .media-grid img {
