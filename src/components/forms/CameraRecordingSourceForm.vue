@@ -18,7 +18,9 @@ const emit = defineEmits<{
 }>()
 
 const cameraOptions = computed(() => props.cameras.filter((camera) => camera.type === 'support' && camera.is_active).map((camera) => ({ label: camera.name, value: camera.id })))
-const recordingDeviceOptions = computed(() => props.recordingDevices.filter((device) => device.is_active).map((device) => ({ label: device.name, value: device.id })))
+const recordingDeviceOptions = computed(() => props.recordingDevices
+  .filter((device) => device.is_active || device.id === props.modelValue.recording_device_id)
+  .map((device) => ({ label: device.name, value: device.id })))
 
 function updateField<K extends keyof CameraRecordingSourceInput>(key: K, value: CameraRecordingSourceInput[K]): void {
   emit('update:modelValue', { ...props.modelValue, [key]: value })

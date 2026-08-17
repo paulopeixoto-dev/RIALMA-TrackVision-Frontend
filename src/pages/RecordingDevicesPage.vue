@@ -54,6 +54,7 @@ const emptySourceForm: CameraRecordingSourceInput = {
 }
 
 const devices = ref<RecordingDevice[]>([])
+const selectableRecordingDevices = ref<RecordingDevice[]>([])
 const sources = ref<CameraRecordingSource[]>([])
 const cameras = ref<Camera[]>([])
 const locations = ref<Location[]>([])
@@ -123,8 +124,20 @@ async function loadData(): Promise<void> {
       locationsService.list(),
       edgeNodesService.list(),
     ])
-    applyDevicesResponse(devicesResponse, devicesCurrentPage.value)
-    applySourcesResponse(sourcesResponse, sourcesCurrentPage.value)
+    const devicesLastPageFromResponse = paginationValue(devicesResponse.meta, 'last_page', 1)
+    const sourcesLastPageFromResponse = paginationValue(sourcesResponse.meta, 'last_page', 1)
+
+    if (devicesCurrentPage.value > devicesLastPageFromResponse) {
+      await loadDevices(devicesLastPageFromResponse)
+    } else {
+      applyDevicesResponse(devicesResponse, devicesCurrentPage.value)
+    }
+
+    if (sourcesCurrentPage.value > sourcesLastPageFromResponse) {
+      await loadSources(sourcesLastPageFromResponse)
+    } else {
+      applySourcesResponse(sourcesResponse, sourcesCurrentPage.value)
+    }
     cameras.value = camerasResponse.data
     locations.value = locationsResponse.data
     edgeNodes.value = edgeNodesResponse.data
@@ -140,7 +153,14 @@ async function loadDevices(page: number): Promise<void> {
   error.value = ''
 
   try {
-    applyDevicesResponse(await recordingDevicesService.list(page), page)
+    const response = await recordingDevicesService.list(page)
+    const lastPage = paginationValue(response.meta, 'last_page', 1)
+    if (page > lastPage) {
+      await loadDevices(lastPage)
+      return
+    }
+
+    applyDevicesResponse(response, page)
   } catch {
     error.value = 'Nao foi possivel carregar gravadores/NVRs.'
   } finally {
@@ -153,7 +173,14 @@ async function loadSources(page: number): Promise<void> {
   error.value = ''
 
   try {
-    applySourcesResponse(await cameraRecordingSourcesService.list(page), page)
+    const response = await cameraRecordingSourcesService.list(page)
+    const lastPage = paginationValue(response.meta, 'last_page', 1)
+    if (page > lastPage) {
+      await loadSources(lastPage)
+      return
+    }
+
+    applySourcesResponse(response, page)
   } catch {
     error.value = 'Nao foi possivel carregar mapeamentos.'
   } finally {
@@ -183,6 +210,18 @@ function nextSourcesPage(): void {
   if (sourcesCurrentPage.value < sourcesLastPage.value) {
     void loadSources(sourcesCurrentPage.value + 1)
   }
+}
+
+async function loadSelectableRecordingDevices(): Promise<void> {
+  const firstPage = await recordingDevicesService.list(1)
+  const lastPage = paginationValue(firstPage.meta, 'last_page', 1)
+  const remainingPages = await Promise.all(
+    Array.from({ length: Math.max(lastPage - 1, 0) }, (_, index) => recordingDevicesService.list(index + 2)),
+  )
+  const devicesById = new Map<number, RecordingDevice>()
+
+  ;[firstPage, ...remainingPages].flatMap((page) => page.data).forEach((device) => devicesById.set(device.id, device))
+  selectableRecordingDevices.value = [...devicesById.values()]
 }
 
 function openCreateDevice(): void {
@@ -268,18 +307,28 @@ async function deactivateDevice(device: RecordingDevice): Promise<void> {
   }
 }
 
-function openCreateSource(): void {
+async function openCreateSource(): Promise<void> {
   editingSource.value = null
   sourceForm.value = {
     ...emptySourceForm,
     camera_id: cameras.value.find((camera) => camera.type === 'support' && camera.is_active)?.id ?? 0,
-    recording_device_id: devices.value.find((device) => device.is_active)?.id ?? 0,
+    recording_device_id: 0,
   }
   sourceErrors.value = {}
-  sourceModalOpen.value = true
+
+  try {
+    await loadSelectableRecordingDevices()
+    sourceForm.value = {
+      ...sourceForm.value,
+      recording_device_id: selectableRecordingDevices.value.find((device) => device.is_active)?.id ?? 0,
+    }
+    sourceModalOpen.value = true
+  } catch {
+    error.value = 'Nao foi possivel carregar gravadores/NVRs para o mapeamento.'
+  }
 }
 
-function openEditSource(source: CameraRecordingSource): void {
+async function openEditSource(source: CameraRecordingSource): Promise<void> {
   editingSource.value = source
   sourceForm.value = {
     camera_id: source.camera?.id ?? 0,
@@ -291,7 +340,13 @@ function openEditSource(source: CameraRecordingSource): void {
     is_active: source.is_active,
   }
   sourceErrors.value = {}
-  sourceModalOpen.value = true
+
+  try {
+    await loadSelectableRecordingDevices()
+    sourceModalOpen.value = true
+  } catch {
+    error.value = 'Nao foi possivel carregar gravadores/NVRs para o mapeamento.'
+  }
 }
 
 function closeSourceModal(): void {
@@ -397,6 +452,7 @@ onMounted(loadData)
           <VaButton
             class="base-button"
             color="secondary"
+            data-test="create-recording-source"
             @click="openCreateSource"
           >
             Novo mapeamento
@@ -613,7 +669,7 @@ onMounted(loadData)
           v-model="sourceForm"
           :cameras="cameras"
           :errors="sourceErrors"
-          :recording-devices="devices"
+          :recording-devices="selectableRecordingDevices"
           :submitting="submittingSource"
           @cancel="closeSourceModal"
           @submit="saveSource"

@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import CameraRecordingSourceForm from '@/components/forms/CameraRecordingSourceForm.vue'
 import RecordingDeviceForm from '@/components/forms/RecordingDeviceForm.vue'
 import { cameraRecordingSourcesService } from '@/services/cameraRecordingSourcesService'
 import { recordingDevicesService } from '@/services/recordingDevicesService'
@@ -298,5 +299,137 @@ describe('RecordingDevicesPage', () => {
 
     expect(cameraRecordingSourcesService.list).toHaveBeenLastCalledWith(2)
     expect(wrapper.text()).toContain('Camera Pagina 2')
+  })
+
+  it('clamps to the last device page after deactivating the final item on a later page', async () => {
+    vi.mocked(recordingDevicesService.list)
+      .mockResolvedValueOnce({
+        data: [{
+          id: 1,
+          uuid: 'nvr-page-one',
+          name: 'NVR Pagina 1',
+          vendor: 'intelbras',
+          protocol: 'http',
+          host: '10.0.8.150',
+          port: 80,
+          username: null,
+          auth_type: 'digest',
+          has_password: true,
+          is_active: true,
+        }],
+        meta: { current_page: 1, last_page: 2 },
+      })
+      .mockResolvedValueOnce({
+        data: [{
+          id: 2,
+          uuid: 'nvr-page-two',
+          name: 'NVR Pagina 2',
+          vendor: 'intelbras',
+          protocol: 'http',
+          host: '10.0.8.151',
+          port: 80,
+          username: null,
+          auth_type: 'digest',
+          has_password: true,
+          is_active: true,
+        }],
+        meta: { current_page: 2, last_page: 2 },
+      })
+
+    const wrapper = mount(RecordingDevicesPage, {
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
+    await flushPromises()
+    await wrapper.get('[data-test="devices-next-page"]').trigger('click')
+    await flushPromises()
+
+    vi.mocked(recordingDevicesService.list)
+      .mockResolvedValueOnce({ data: [], meta: { current_page: 2, last_page: 1 } })
+      .mockResolvedValueOnce({
+        data: [{
+          id: 1,
+          uuid: 'nvr-page-one',
+          name: 'NVR Pagina 1',
+          vendor: 'intelbras',
+          protocol: 'http',
+          host: '10.0.8.150',
+          port: 80,
+          username: null,
+          auth_type: 'digest',
+          has_password: true,
+          is_active: true,
+        }],
+        meta: { current_page: 1, last_page: 1 },
+      })
+
+    await wrapper.findAll('button').find((button) => button.text().includes('Desativar'))?.trigger('click')
+    await flushPromises()
+
+    expect(recordingDevicesService.list).toHaveBeenLastCalledWith(1)
+    expect(wrapper.text()).toContain('NVR Pagina 1')
+  })
+
+  it('loads all paginated NVRs for recording source selection', async () => {
+    vi.mocked(recordingDevicesService.list)
+      .mockResolvedValueOnce({
+        data: [{
+          id: 1,
+          uuid: 'nvr-page-one',
+          name: 'NVR Pagina 1',
+          vendor: 'intelbras',
+          protocol: 'http',
+          host: '10.0.8.150',
+          port: 80,
+          username: null,
+          auth_type: 'digest',
+          has_password: true,
+          is_active: true,
+        }],
+        meta: { current_page: 1, last_page: 2 },
+      })
+      .mockResolvedValueOnce({
+        data: [{
+          id: 1,
+          uuid: 'nvr-page-one',
+          name: 'NVR Pagina 1',
+          vendor: 'intelbras',
+          protocol: 'http',
+          host: '10.0.8.150',
+          port: 80,
+          username: null,
+          auth_type: 'digest',
+          has_password: true,
+          is_active: true,
+        }],
+        meta: { current_page: 1, last_page: 2 },
+      })
+      .mockResolvedValueOnce({
+        data: [{
+          id: 2,
+          uuid: 'nvr-page-two',
+          name: 'NVR Pagina 2',
+          vendor: 'intelbras',
+          protocol: 'http',
+          host: '10.0.8.151',
+          port: 80,
+          username: null,
+          auth_type: 'digest',
+          has_password: true,
+          is_active: true,
+        }],
+        meta: { current_page: 2, last_page: 2 },
+      })
+
+    const wrapper = mount(RecordingDevicesPage, {
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
+    await flushPromises()
+
+    await wrapper.get('[data-test="create-recording-source"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findComponent(CameraRecordingSourceForm).props('recordingDevices')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 2, name: 'NVR Pagina 2' }),
+    ]))
   })
 })
