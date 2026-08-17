@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { mediaAssetsService } from '@/services/mediaAssetsService'
+import { ApiError } from '@/services/apiClient'
 import { reportsService } from '@/services/reportsService'
 import { useAuthStore } from '@/stores/authStore'
 import { tripsService } from '@/services/tripsService'
@@ -37,6 +38,7 @@ const { trip, detailedTrip } = vi.hoisted(() => {
         plate: 'ABC-1D23',
         plate_normalized: 'ABC1D23',
         event_time: '2026-08-13T10:00:00Z',
+        has_support_camera: true,
         camera_pair: { id: 1, uuid: 'pair-uuid', name: 'Entrada 01' },
       },
       media: {
@@ -165,7 +167,7 @@ describe('TripsPage', () => {
       direction: 'outbound',
       load_status: 'unknown',
       occurred_at: '2026-08-17T10:30:15Z',
-      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z' },
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z', has_support_camera: true },
       media: { lpr_image: null, support_image: null },
       support_image_recovery: { status: 'pending', attempts: 1, last_error: null, next_attempt_at: null, updated_at: null },
     }])
@@ -185,7 +187,7 @@ describe('TripsPage', () => {
       direction: 'outbound',
       load_status: 'unknown',
       occurred_at: '2026-08-17T10:30:15Z',
-      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z' },
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z', has_support_camera: true },
       media: { lpr_image: null, support_image: null },
     }])
 
@@ -195,6 +197,149 @@ describe('TripsPage', () => {
 
     expect(tripsService.requestSupportImageRecovery).toHaveBeenCalledWith(expect.objectContaining({ id: 10 }))
     expect(wrapper.text()).toContain('Recuperacao solicitada.')
+  })
+
+  it('hides manual recovery when the capture has no support camera', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['trips.manage']
+    mockTripsShow([{
+      id: 10,
+      uuid: 'event-uuid',
+      direction: 'outbound',
+      load_status: 'unknown',
+      occurred_at: '2026-08-17T10:30:15Z',
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z', has_support_camera: false },
+      media: { lpr_image: null, support_image: null },
+    }])
+
+    const wrapper = await mountTripsPageAndSelectFirstTrip()
+
+    expect(wrapper.find('[data-test="request-support-recovery"]').exists()).toBe(false)
+  })
+
+  it('shows the API validation message when manual recovery is unavailable', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['trips.manage']
+    mockTripsShow([{
+      id: 10,
+      uuid: 'event-uuid',
+      direction: 'outbound',
+      load_status: 'unknown',
+      occurred_at: '2026-08-17T10:30:15Z',
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z', has_support_camera: true },
+      media: { lpr_image: null, support_image: null },
+    }])
+    vi.mocked(tripsService.requestSupportImageRecovery).mockRejectedValueOnce(
+      new ApiError(422, 'This capture has no support camera.'),
+    )
+
+    const wrapper = await mountTripsPageAndSelectFirstTrip()
+    await wrapper.get('[data-test="request-support-recovery"]').trigger('click')
+    await waitForPromises()
+
+    expect(wrapper.text()).toContain('This capture has no support camera.')
+  })
+
+  it('shows the API conflict message when support media already exists', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['trips.manage']
+    mockTripsShow([{
+      id: 10,
+      uuid: 'event-uuid',
+      direction: 'outbound',
+      load_status: 'unknown',
+      occurred_at: '2026-08-17T10:30:15Z',
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z', has_support_camera: true },
+      media: { lpr_image: null, support_image: null },
+    }])
+    vi.mocked(tripsService.requestSupportImageRecovery).mockRejectedValueOnce(
+      new ApiError(409, 'Support image is already available for this capture.'),
+    )
+
+    const wrapper = await mountTripsPageAndSelectFirstTrip()
+    await wrapper.get('[data-test="request-support-recovery"]').trigger('click')
+    await waitForPromises()
+
+    expect(wrapper.text()).toContain('Support image is already available for this capture.')
+  })
+
+  it('refetches the selected trip after recovery is requested', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['trips.manage']
+    const missingEvent: TripEvent = {
+      id: 10,
+      uuid: 'event-uuid',
+      direction: 'outbound',
+      load_status: 'unknown',
+      occurred_at: '2026-08-17T10:30:15Z',
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z', has_support_camera: true },
+      media: { lpr_image: null, support_image: null },
+    }
+    const recoveredEvent: TripEvent = {
+      ...missingEvent,
+      media: {
+        lpr_image: null,
+        support_image: { id: 22, uuid: 'support-media', kind: 'support_image', content_type: 'image/jpeg', byte_size: 10, content_endpoint: '/api/v1/admin/media-assets/22/content' },
+      },
+      support_image_recovery: { status: 'recovered', attempts: 1, last_error: null, next_attempt_at: null, updated_at: null },
+    }
+    vi.mocked(tripsService.show)
+      .mockResolvedValueOnce({ ...detailedTrip, events: [missingEvent] } as never)
+      .mockResolvedValueOnce({ ...detailedTrip, events: [recoveredEvent] } as never)
+
+    const wrapper = await mountTripsPageAndSelectFirstTrip()
+    await wrapper.get('[data-test="request-support-recovery"]').trigger('click')
+    await waitForPromises()
+
+    expect(tripsService.show).toHaveBeenCalledTimes(2)
+    expect(wrapper.find('img[alt="Imagem de apoio da viagem"]').exists()).toBe(true)
+    expect(wrapper.find('[data-test="request-support-recovery"]').exists()).toBe(false)
+  })
+
+  it('polls the selected trip while asynchronous recovery remains pending', async () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['trips.manage']
+    const missingEvent: TripEvent = {
+      id: 10,
+      uuid: 'event-uuid',
+      direction: 'outbound',
+      load_status: 'unknown',
+      occurred_at: '2026-08-17T10:30:15Z',
+      capture: { id: 99, uuid: 'capture-uuid', plate: 'ABC1D23', plate_normalized: 'ABC1D23', event_time: '2026-08-17T10:30:15Z', has_support_camera: true },
+      media: { lpr_image: null, support_image: null },
+    }
+    const pendingEvent: TripEvent = {
+      ...missingEvent,
+      support_image_recovery: { status: 'pending', attempts: 0, last_error: null, next_attempt_at: null, updated_at: null },
+    }
+    const recoveredEvent: TripEvent = {
+      ...pendingEvent,
+      media: {
+        lpr_image: null,
+        support_image: { id: 22, uuid: 'support-media', kind: 'support_image', content_type: 'image/jpeg', byte_size: 10, content_endpoint: '/api/v1/admin/media-assets/22/content' },
+      },
+      support_image_recovery: { ...pendingEvent.support_image_recovery!, status: 'recovered' },
+    }
+    vi.mocked(tripsService.show)
+      .mockResolvedValueOnce({ ...detailedTrip, events: [missingEvent] } as never)
+      .mockResolvedValueOnce({ ...detailedTrip, events: [pendingEvent] } as never)
+      .mockResolvedValueOnce({ ...detailedTrip, events: [recoveredEvent] } as never)
+    vi.useFakeTimers()
+
+    try {
+      const wrapper = mountTripsPage()
+      await vi.runAllTimersAsync()
+      await wrapper.get('[data-test="select-trip"]').trigger('click')
+      await vi.runAllTimersAsync()
+      await wrapper.get('[data-test="request-support-recovery"]').trigger('click')
+      await vi.runAllTimersAsync()
+
+      expect(tripsService.show).toHaveBeenCalledTimes(3)
+      expect(wrapper.find('img[alt="Imagem de apoio da viagem"]').exists()).toBe(true)
+      wrapper.unmount()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('clears the previous detail when a newly selected trip fails to load', async () => {

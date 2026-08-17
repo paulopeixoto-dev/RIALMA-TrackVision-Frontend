@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { ApiError } from '@/services/apiClient'
 import { mediaAssetsService } from '@/services/mediaAssetsService'
 import { reportsService } from '@/services/reportsService'
 import { tripsService } from '@/services/tripsService'
@@ -59,6 +60,9 @@ const canViewReports = computed(() => authStore.can('reports.view'))
 const exporting = ref<'csv' | 'pdf' | null>(null)
 let selectionRequestId = 0
 let isPageActive = true
+const recoveryPollTimers = new Map<number, number>()
+const recoveryPollIntervalMs = 2000
+const recoveryPollAttempts = 4
 
 function tripFrom(row: unknown): Trip {
   return row as Trip
@@ -123,6 +127,11 @@ function auditLabel(audit: TripEventLoadStatusAudit): string {
 function revokeImages(): void {
   Object.values(imageUrls.value).forEach((url) => mediaAssetsService.revokeObjectUrl(url))
   imageUrls.value = {}
+}
+
+function clearRecoveryPolls(): void {
+  recoveryPollTimers.forEach((timer) => window.clearTimeout(timer))
+  recoveryPollTimers.clear()
 }
 
 function isCurrentSelection(requestId: number): boolean {
@@ -190,6 +199,7 @@ async function selectTrip(trip: Trip): Promise<void> {
   const requestId = ++selectionRequestId
   detailLoading.value = true
   error.value = ''
+  clearRecoveryPolls()
   revokeImages()
   selectedTrip.value = null
 
@@ -218,6 +228,10 @@ async function loadImages(events: TripEvent[], requestId: number): Promise<void>
 
   for (const media of pairs) {
     if (media) {
+      if (imageUrls.value[media.id]) {
+        continue
+      }
+
       let url: string
 
       try {
@@ -232,6 +246,53 @@ async function loadImages(events: TripEvent[], requestId: number): Promise<void>
       }
 
       imageUrls.value[media.id] = url
+    }
+  }
+}
+
+function scheduleRecoveryRefresh(eventId: number, remainingAttempts: number): void {
+  const currentTimer = recoveryPollTimers.get(eventId)
+  if (currentTimer !== undefined) {
+    window.clearTimeout(currentTimer)
+  }
+
+  const timer = window.setTimeout(() => {
+    recoveryPollTimers.delete(eventId)
+    void refreshRecoveryState(eventId, remainingAttempts)
+  }, recoveryPollIntervalMs)
+  recoveryPollTimers.set(eventId, timer)
+}
+
+async function refreshRecoveryState(eventId: number, remainingAttempts: number): Promise<void> {
+  const trip = selectedTrip.value
+  const requestId = selectionRequestId
+
+  if (!trip || !isCurrentSelection(requestId)) {
+    return
+  }
+
+  try {
+    const loadedTrip = await tripsService.show(trip)
+
+    if (!isCurrentSelection(requestId) || selectedTrip.value?.id !== trip.id) {
+      return
+    }
+
+    selectedTrip.value = loadedTrip
+    await loadImages(loadedTrip.events ?? [], requestId)
+
+    const updatedEvent = loadedTrip.events?.find((item) => item.id === eventId)
+    const status = updatedEvent?.support_image_recovery?.status
+    const stillRecovering = updatedEvent !== undefined
+      && !updatedEvent.media.support_image
+      && (status === undefined || status === 'pending' || status === 'running')
+
+    if (stillRecovering && remainingAttempts > 0) {
+      scheduleRecoveryRefresh(eventId, remainingAttempts - 1)
+    }
+  } catch {
+    if (isCurrentSelection(requestId) && remainingAttempts > 0) {
+      scheduleRecoveryRefresh(eventId, remainingAttempts - 1)
     }
   }
 }
@@ -259,15 +320,28 @@ async function updateLoadStatus(event: TripEvent, loadStatus: LoadStatus): Promi
 }
 
 async function requestSupportRecovery(event: TripEvent): Promise<void> {
+  const requestId = selectionRequestId
   recoveringEventId.value = event.id
   success.value = ''
   error.value = ''
 
   try {
     event.support_image_recovery = await tripsService.requestSupportImageRecovery(event)
+
+    if (!isCurrentSelection(requestId)) {
+      return
+    }
+
     success.value = 'Recuperacao solicitada.'
-  } catch {
-    error.value = 'Nao foi possivel solicitar recuperacao.'
+    await refreshRecoveryState(event.id, recoveryPollAttempts)
+  } catch (apiError) {
+    error.value = apiError instanceof ApiError
+      ? apiError.message
+      : 'Nao foi possivel solicitar recuperacao.'
+
+    if (apiError instanceof ApiError && apiError.status === 409) {
+      await refreshRecoveryState(event.id, 0)
+    }
   } finally {
     recoveringEventId.value = null
   }
@@ -277,6 +351,7 @@ onMounted(loadTrips)
 onBeforeUnmount(() => {
   isPageActive = false
   selectionRequestId += 1
+  clearRecoveryPolls()
   revokeImages()
 })
 </script>
@@ -545,7 +620,7 @@ onBeforeUnmount(() => {
               </VaAlert>
 
               <VaButton
-                v-if="canManageTrips && !event.media.support_image"
+                v-if="canManageTrips && event.capture.has_support_camera && !event.media.support_image"
                 class="base-button"
                 color="secondary"
                 data-test="request-support-recovery"

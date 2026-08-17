@@ -71,4 +71,15 @@ describe('tripsService', () => {
     expect(fetchMock.mock.calls[0][1].method).toBe('POST')
     expect(fetchMock.mock.calls[0][1].body).toBe(JSON.stringify({}))
   })
+
+  it('rejects a null recovery response instead of returning an invalid attempt', async () => {
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ data: null }), { status: 202 }))
+
+    const request = tripsService.requestSupportImageRecovery({ capture: { id: 99 } } as never)
+
+    await expect(request).rejects.toMatchObject({
+      status: 502,
+      message: 'Resposta invalida ao solicitar recuperacao.',
+    })
+  })
 })

@@ -1,4 +1,5 @@
 import { getAppConfig } from '@/app/config'
+import { ApiError } from './apiClient'
 import type { LaravelPaginated, LaravelResource } from '@/types/api'
 import type { LoadStatus, SupportImageRecoveryAttempt, Trip, TripEvent, TripFilters } from '@/types/admin'
 import { createApiClient } from './apiClient'
@@ -44,10 +45,15 @@ export const tripsService = {
   },
 
   async requestSupportImageRecovery(tripEvent: TripEvent): Promise<SupportImageRecoveryAttempt> {
-    const response = await client.post<LaravelResource<SupportImageRecoveryAttempt>>(
+    const response = await client.post<LaravelResource<SupportImageRecoveryAttempt | null>>(
       `/admin/captures/${tripEvent.capture.id}/support-image-recovery`,
       {},
     )
+
+    if (!response.data) {
+      throw new ApiError(502, 'Resposta invalida ao solicitar recuperacao.')
+    }
+
     return response.data
   },
 }

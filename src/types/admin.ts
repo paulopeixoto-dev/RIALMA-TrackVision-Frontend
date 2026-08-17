@@ -230,6 +230,7 @@ export interface TripEvent {
     plate: string | null
     plate_normalized: string | null
     event_time: string | null
+    has_support_camera: boolean
     camera_pair?: {
       id: number | null
       uuid: string | null
