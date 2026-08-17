@@ -21,6 +21,7 @@ describe('TheSidebar', () => {
         { path: '/dashboard', name: 'dashboard', component: { template: '<div />' } },
         { path: '/vehicles', name: 'vehicles', component: { template: '<div />' } },
         { path: '/trips', name: 'trips', component: { template: '<div />' } },
+        { path: '/recording-devices', name: 'recording-devices', component: { template: '<div />' } },
       ],
     })
 
@@ -32,6 +33,29 @@ describe('TheSidebar', () => {
 
     expect(wrapper.text()).toContain('Viagens')
     expect(wrapper.text()).not.toContain('Veiculos')
+    expect(wrapper.text()).not.toContain('Gravadores/NVRs')
+  })
+
+  it('shows the NVR navigation item to users who manage cameras', () => {
+    const authStore = useAuthStore()
+    authStore.permissions = ['cameras.manage']
+
+    const router = createRouter({
+      history: createWebHistory(),
+      routes: [
+        { path: '/', redirect: '/dashboard' },
+        { path: '/dashboard', name: 'dashboard', component: { template: '<div />' } },
+        { path: '/locations', name: 'locations', component: { template: '<div />' } },
+        { path: '/edge-nodes', name: 'edge-nodes', component: { template: '<div />' } },
+        { path: '/cameras', name: 'cameras', component: { template: '<div />' } },
+        { path: '/camera-pairs', name: 'camera-pairs', component: { template: '<div />' } },
+        { path: '/recording-devices', name: 'recording-devices', component: { template: '<div />' } },
+      ],
+    })
+
+    const wrapper = mount(TheSidebar, { global: { plugins: [router] } })
+
+    expect(wrapper.text()).toContain('Gravadores/NVRs')
   })
 
   it('emits toggle and marks the minimized state', async () => {

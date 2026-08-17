@@ -20,6 +20,7 @@ function createTestRouter() {
       { path: '/edge-nodes', name: 'edge-nodes', component: { template: '<div>Edge Nodes</div>' } },
       { path: '/cameras', name: 'cameras', component: { template: '<div>Cameras</div>' } },
       { path: '/camera-pairs', name: 'camera-pairs', component: { template: '<div>Camera Pairs</div>' } },
+      { path: '/recording-devices', name: 'recording-devices', component: { template: '<div>Recording Devices</div>' } },
     ],
   })
 }

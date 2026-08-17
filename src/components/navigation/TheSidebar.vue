@@ -41,6 +41,7 @@ const navigationItems = [
   { label: 'Edge Nodes', route: 'edge-nodes', permission: 'cameras.manage', icon: Server },
   { label: 'Cameras', route: 'cameras', permission: 'cameras.manage', icon: Camera },
   { label: 'Pares de Cameras', route: 'camera-pairs', permission: 'cameras.manage', icon: Link },
+  { label: 'Gravadores/NVRs', route: 'recording-devices', permission: 'cameras.manage', icon: Server },
 ] satisfies NavigationItem[]
 
 const visibleItems = computed(() => navigationItems.filter((item) => authStore.can(item.permission)))

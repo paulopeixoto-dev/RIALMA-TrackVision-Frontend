@@ -121,6 +121,64 @@ export interface CameraPairInput {
   is_active: boolean
 }
 
+export type RecordingDeviceVendor = 'intelbras'
+export type RecordingDeviceProtocol = 'http' | 'https'
+export type RecordingDeviceAuthType = 'digest' | 'basic' | 'none'
+export type RecordingStream = 'main' | 'sub'
+export type MediaRecoveryStatus = 'pending_configuration' | 'pending' | 'running' | 'recovered' | 'not_found' | 'failed'
+
+export interface RecordingDevice {
+  id: number
+  uuid: string
+  name: string
+  vendor: RecordingDeviceVendor
+  protocol: RecordingDeviceProtocol
+  host: string
+  port: number
+  username: string | null
+  auth_type: RecordingDeviceAuthType
+  has_password: boolean
+  is_active: boolean
+  location?: Pick<Location, 'id' | 'uuid' | 'name'>
+  edge_node?: Pick<EdgeNode, 'id' | 'uuid' | 'name'>
+}
+
+export interface RecordingDeviceInput {
+  location_id: number
+  edge_node_id: number
+  name: string
+  vendor: RecordingDeviceVendor
+  protocol: RecordingDeviceProtocol
+  host: string
+  port: number
+  username: string | null
+  password?: string
+  auth_type: RecordingDeviceAuthType
+  is_active: boolean
+}
+
+export interface CameraRecordingSource {
+  id: number
+  uuid: string
+  camera?: Camera
+  recording_device?: RecordingDevice
+  channel: number
+  stream: RecordingStream
+  target_offset_seconds: number
+  search_window_seconds: number
+  is_active: boolean
+}
+
+export interface CameraRecordingSourceInput {
+  camera_id: number
+  recording_device_id: number
+  channel: number
+  stream: RecordingStream
+  target_offset_seconds: number
+  search_window_seconds: number
+  is_active: boolean
+}
+
 export type TripStatus = 'open' | 'closed' | 'needs_review'
 export type TripEventDirection = 'outbound' | 'inbound' | 'unknown'
 export type LoadStatus = 'unknown' | 'loaded' | 'empty' | 'needs_review'

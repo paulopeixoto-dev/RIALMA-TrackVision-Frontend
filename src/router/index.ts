@@ -9,6 +9,7 @@ import LoginPage from '@/pages/LoginPage.vue'
 import LocationsPage from '@/pages/LocationsPage.vue'
 import NotFoundPage from '@/pages/NotFoundPage.vue'
 import PermissionsPage from '@/pages/PermissionsPage.vue'
+import RecordingDevicesPage from '@/pages/RecordingDevicesPage.vue'
 import RolesPage from '@/pages/RolesPage.vue'
 import TripsPage from '@/pages/TripsPage.vue'
 import UsersPage from '@/pages/UsersPage.vue'
@@ -90,6 +91,12 @@ export function createAppRouter() {
             path: 'camera-pairs',
             name: 'camera-pairs',
             component: CameraPairsPage,
+            meta: { permission: 'cameras.manage' },
+          },
+          {
+            path: 'recording-devices',
+            name: 'recording-devices',
+            component: RecordingDevicesPage,
             meta: { permission: 'cameras.manage' },
           },
         ],
