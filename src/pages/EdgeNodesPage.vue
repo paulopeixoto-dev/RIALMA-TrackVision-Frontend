@@ -45,10 +45,10 @@ async function loadData(): Promise<void> {
   try {
     const [nodesResponse, locationsResponse] = await Promise.all([
       edgeNodesService.list(),
-      locationsService.list(),
+      locationsService.listAll(),
     ])
     edgeNodes.value = nodesResponse.data
-    locations.value = locationsResponse.data
+    locations.value = locationsResponse
   } catch {
     error.value = 'Nao foi possivel carregar edge nodes.'
   } finally {

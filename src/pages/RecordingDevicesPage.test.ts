@@ -3,6 +3,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import CameraRecordingSourceForm from '@/components/forms/CameraRecordingSourceForm.vue'
 import RecordingDeviceForm from '@/components/forms/RecordingDeviceForm.vue'
 import { cameraRecordingSourcesService } from '@/services/cameraRecordingSourcesService'
+import { camerasService } from '@/services/camerasService'
+import { edgeNodesService } from '@/services/edgeNodesService'
+import { locationsService } from '@/services/locationsService'
 import { recordingDevicesService } from '@/services/recordingDevicesService'
 import { createVuesticTestPlugin } from '@/test/vuestic'
 import RecordingDevicesPage from './RecordingDevicesPage.vue'
@@ -26,6 +29,7 @@ vi.mock('@/services/recordingDevicesService', () => ({
         edge_node: { id: 1, uuid: 'edge-uuid', name: 'Edge Local' },
       }],
     }),
+    listAll: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
     remove: vi.fn(),
@@ -58,6 +62,7 @@ vi.mock('@/services/locationsService', () => ({
     list: vi.fn().mockResolvedValue({
       data: [{ id: 1, uuid: 'loc-uuid', name: 'Portaria', description: null, is_active: true }],
     }),
+    listAll: vi.fn().mockResolvedValue([{ id: 1, uuid: 'loc-uuid', name: 'Portaria', description: null, is_active: true }]),
   },
 }))
 
@@ -75,6 +80,7 @@ vi.mock('@/services/edgeNodesService', () => ({
         location: { id: 1, uuid: 'loc-uuid', name: 'Portaria', description: null, is_active: true },
       }],
     }),
+    listAll: vi.fn().mockResolvedValue([]),
   },
 }))
 
@@ -94,6 +100,7 @@ vi.mock('@/services/camerasService', () => ({
         is_active: true,
       }],
     }),
+    listAll: vi.fn().mockResolvedValue([]),
   },
 }))
 
@@ -117,6 +124,21 @@ describe('RecordingDevicesPage', () => {
         edge_node: { id: 1, uuid: 'edge-uuid', name: 'Edge Local' },
       }],
     })
+    vi.mocked(recordingDevicesService.listAll).mockReset().mockResolvedValue([{
+      id: 1,
+      uuid: 'nvr-uuid',
+      name: 'NVR Portaria 01',
+      vendor: 'intelbras',
+      protocol: 'http',
+      host: '10.0.8.150',
+      port: 80,
+      username: 'trackvision_ro',
+      auth_type: 'digest',
+      has_password: true,
+      is_active: true,
+      location: { id: 1, uuid: 'loc-uuid', name: 'Portaria' },
+      edge_node: { id: 1, uuid: 'edge-uuid', name: 'Edge Local' },
+    }])
     vi.mocked(cameraRecordingSourcesService.list).mockReset()
     vi.mocked(cameraRecordingSourcesService.list).mockResolvedValue({
       data: [{
@@ -132,6 +154,12 @@ describe('RecordingDevicesPage', () => {
       }],
     })
     vi.mocked(cameraRecordingSourcesService.remove).mockReset()
+    vi.mocked(cameraRecordingSourcesService.update).mockReset().mockResolvedValue({} as never)
+    vi.mocked(locationsService.listAll).mockReset().mockResolvedValue([
+      { id: 1, uuid: 'loc-uuid', name: 'Portaria', description: null, is_active: true },
+    ])
+    vi.mocked(edgeNodesService.listAll).mockReset().mockResolvedValue([])
+    vi.mocked(camerasService.listAll).mockReset().mockResolvedValue([])
   })
 
   it('renders NVR devices and opens the Vuestic form', async () => {
@@ -370,55 +398,19 @@ describe('RecordingDevicesPage', () => {
   })
 
   it('loads all paginated NVRs for recording source selection', async () => {
-    vi.mocked(recordingDevicesService.list)
-      .mockResolvedValueOnce({
-        data: [{
-          id: 1,
-          uuid: 'nvr-page-one',
-          name: 'NVR Pagina 1',
-          vendor: 'intelbras',
-          protocol: 'http',
-          host: '10.0.8.150',
-          port: 80,
-          username: null,
-          auth_type: 'digest',
-          has_password: true,
-          is_active: true,
-        }],
-        meta: { current_page: 1, last_page: 2 },
-      })
-      .mockResolvedValueOnce({
-        data: [{
-          id: 1,
-          uuid: 'nvr-page-one',
-          name: 'NVR Pagina 1',
-          vendor: 'intelbras',
-          protocol: 'http',
-          host: '10.0.8.150',
-          port: 80,
-          username: null,
-          auth_type: 'digest',
-          has_password: true,
-          is_active: true,
-        }],
-        meta: { current_page: 1, last_page: 2 },
-      })
-      .mockResolvedValueOnce({
-        data: [{
-          id: 2,
-          uuid: 'nvr-page-two',
-          name: 'NVR Pagina 2',
-          vendor: 'intelbras',
-          protocol: 'http',
-          host: '10.0.8.151',
-          port: 80,
-          username: null,
-          auth_type: 'digest',
-          has_password: true,
-          is_active: true,
-        }],
-        meta: { current_page: 2, last_page: 2 },
-      })
+    vi.mocked(recordingDevicesService.listAll).mockResolvedValueOnce([{
+      id: 2,
+      uuid: 'nvr-page-two',
+      name: 'NVR Pagina 2',
+      vendor: 'intelbras',
+      protocol: 'http',
+      host: '10.0.8.151',
+      port: 80,
+      username: null,
+      auth_type: 'digest',
+      has_password: true,
+      is_active: true,
+    }])
 
     const wrapper = mount(RecordingDevicesPage, {
       global: { plugins: [createVuesticTestPlugin()] },
@@ -430,6 +422,104 @@ describe('RecordingDevicesPage', () => {
 
     expect(wrapper.findComponent(CameraRecordingSourceForm).props('recordingDevices')).toEqual(expect.arrayContaining([
       expect.objectContaining({ id: 2, name: 'NVR Pagina 2' }),
+    ]))
+  })
+
+  it('omits camera_id from the mapping PATCH payload and keeps the camera immutable', async () => {
+    const wrapper = mount(RecordingDevicesPage, {
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
+    await flushPromises()
+
+    await wrapper.get('[data-test="edit-recording-source"]').trigger('click')
+    await flushPromises()
+    const form = wrapper.findComponent(CameraRecordingSourceForm)
+    expect(form.props('cameraImmutable')).toBe(true)
+
+    form.vm.$emit('submit')
+    await flushPromises()
+
+    expect(cameraRecordingSourcesService.update).toHaveBeenCalledWith(
+      expect.objectContaining({ id: 1 }),
+      expect.not.objectContaining({ camera_id: expect.anything() }),
+    )
+  })
+
+  it('uses complete selector collections and filters NVRs beyond the current page', async () => {
+    vi.mocked(locationsService.listAll).mockResolvedValueOnce([
+      { id: 1, uuid: 'loc-uuid', name: 'Portaria', description: null, is_active: true },
+      { id: 2, uuid: 'loc-2', name: 'Unidade 2', description: null, is_active: true },
+    ])
+    vi.mocked(recordingDevicesService.listAll).mockResolvedValueOnce([{
+      id: 2,
+      uuid: 'nvr-other-location',
+      name: 'NVR Outra Unidade',
+      vendor: 'intelbras',
+      protocol: 'http',
+      host: '10.0.9.150',
+      port: 80,
+      username: null,
+      auth_type: 'digest',
+      has_password: true,
+      is_active: true,
+      location: { id: 2, uuid: 'loc-2', name: 'Unidade 2' },
+    }])
+
+    const wrapper = mount(RecordingDevicesPage, {
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
+    await flushPromises()
+
+    wrapper.findAllComponents({ name: 'VaSelect' })[0].vm.$emit('update:modelValue', 2)
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('NVR Outra Unidade')
+  })
+
+  it('passes every loaded location, edge node, and camera to selector forms', async () => {
+    vi.mocked(locationsService.listAll).mockResolvedValueOnce([
+      { id: 1, uuid: 'loc-uuid', name: 'Portaria', description: null, is_active: true },
+      { id: 2, uuid: 'loc-2', name: 'Unidade 2', description: null, is_active: true },
+    ])
+    vi.mocked(edgeNodesService.listAll).mockResolvedValueOnce([{
+      id: 2,
+      uuid: 'edge-2',
+      name: 'Edge Pagina 2',
+      description: null,
+      status: 'online',
+      last_seen_at: null,
+      is_active: true,
+    }])
+    vi.mocked(camerasService.listAll).mockResolvedValueOnce([{
+      id: 3,
+      uuid: 'camera-3',
+      name: 'Apoio Pagina 2',
+      type: 'support',
+      vendor: 'intelbras',
+      host: '10.0.9.151',
+      port: 80,
+      channel: 2,
+      username: null,
+      is_active: true,
+    }])
+
+    const wrapper = mount(RecordingDevicesPage, {
+      global: { plugins: [createVuesticTestPlugin()] },
+    })
+    await flushPromises()
+
+    await wrapper.get('[data-test="create-recording-device"]').trigger('click')
+    await wrapper.get('[data-test="create-recording-source"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findComponent(RecordingDeviceForm).props('locations')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 2, name: 'Unidade 2' }),
+    ]))
+    expect(wrapper.findComponent(RecordingDeviceForm).props('edgeNodes')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 2, name: 'Edge Pagina 2' }),
+    ]))
+    expect(wrapper.findComponent(CameraRecordingSourceForm).props('cameras')).toEqual(expect.arrayContaining([
+      expect.objectContaining({ id: 3, name: 'Apoio Pagina 2' }),
     ]))
   })
 })

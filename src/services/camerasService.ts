@@ -1,6 +1,7 @@
 import { getAppConfig } from '@/app/config'
 import type { LaravelPaginated, LaravelResource } from '@/types/api'
 import type { Camera, CameraInput } from '@/types/admin'
+import { listAllPages } from './listAllPages'
 import { createApiClient } from './apiClient'
 
 const client = createApiClient({
@@ -9,8 +10,12 @@ const client = createApiClient({
 })
 
 export const camerasService = {
-  list(): Promise<LaravelPaginated<Camera>> {
-    return client.get<LaravelPaginated<Camera>>('/admin/cameras')
+  list(page = 1): Promise<LaravelPaginated<Camera>> {
+    return client.get<LaravelPaginated<Camera>>(`/admin/cameras?page=${page}`)
+  },
+
+  listAll(): Promise<Camera[]> {
+    return listAllPages((page) => this.list(page))
   },
 
   async create(input: CameraInput): Promise<Camera> {

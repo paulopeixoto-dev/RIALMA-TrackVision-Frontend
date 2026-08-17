@@ -1,6 +1,7 @@
 import { getAppConfig } from '@/app/config'
 import type { LaravelPaginated, LaravelResource } from '@/types/api'
 import type { EdgeNode, EdgeNodeInput } from '@/types/admin'
+import { listAllPages } from './listAllPages'
 import { createApiClient } from './apiClient'
 
 const client = createApiClient({
@@ -9,8 +10,12 @@ const client = createApiClient({
 })
 
 export const edgeNodesService = {
-  list(): Promise<LaravelPaginated<EdgeNode>> {
-    return client.get<LaravelPaginated<EdgeNode>>('/admin/edge-nodes')
+  list(page = 1): Promise<LaravelPaginated<EdgeNode>> {
+    return client.get<LaravelPaginated<EdgeNode>>(`/admin/edge-nodes?page=${page}`)
+  },
+
+  listAll(): Promise<EdgeNode[]> {
+    return listAllPages((page) => this.list(page))
   },
 
   async create(input: EdgeNodeInput): Promise<EdgeNode> {

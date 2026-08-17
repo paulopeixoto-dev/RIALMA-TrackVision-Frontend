@@ -9,6 +9,7 @@ const props = defineProps<{
   recordingDevices: RecordingDevice[]
   errors: FieldErrors
   submitting: boolean
+  cameraImmutable?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -39,6 +40,7 @@ function updateField<K extends keyof CameraRecordingSourceInput>(key: K, value: 
       label="Camera de apoio"
       :model-value="modelValue.camera_id"
       name="camera_id"
+      :disabled="cameraImmutable"
       :options="cameraOptions"
       placeholder="Selecione"
       text-by="label"

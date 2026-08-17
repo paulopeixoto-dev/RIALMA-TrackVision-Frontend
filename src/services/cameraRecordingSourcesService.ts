@@ -1,6 +1,6 @@
 import { getAppConfig } from '@/app/config'
 import type { LaravelPaginated, LaravelResource } from '@/types/api'
-import type { CameraRecordingSource, CameraRecordingSourceInput } from '@/types/admin'
+import type { CameraRecordingSource, CameraRecordingSourceInput, UpdateCameraRecordingSourceInput } from '@/types/admin'
 import { createApiClient } from './apiClient'
 
 const client = createApiClient({
@@ -18,7 +18,7 @@ export const cameraRecordingSourcesService = {
     return response.data
   },
 
-  async update(source: CameraRecordingSource, input: CameraRecordingSourceInput): Promise<CameraRecordingSource> {
+  async update(source: CameraRecordingSource, input: UpdateCameraRecordingSourceInput): Promise<CameraRecordingSource> {
     const response = await client.patch<LaravelResource<CameraRecordingSource>>(`/admin/camera-recording-sources/${source.id}`, input)
     return response.data
   },

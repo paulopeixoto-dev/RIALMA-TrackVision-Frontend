@@ -25,9 +25,9 @@ vi.mock('@/services/edgeNodesService', () => ({
 
 vi.mock('@/services/locationsService', () => ({
   locationsService: {
-    list: vi.fn().mockResolvedValue({
-      data: [{ id: 1, uuid: 'loc-1', name: 'Portaria', description: null, is_active: true }],
-    }),
+    listAll: vi.fn().mockResolvedValue([
+      { id: 1, uuid: 'loc-1', name: 'Portaria', description: null, is_active: true },
+    ]),
   },
 }))
 

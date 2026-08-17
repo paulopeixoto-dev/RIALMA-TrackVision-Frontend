@@ -66,9 +66,9 @@ vi.mock('@/services/cameraPairsService', () => ({
   },
 }))
 
-vi.mock('@/services/locationsService', () => ({ locationsService: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('@/services/edgeNodesService', () => ({ edgeNodesService: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
-vi.mock('@/services/camerasService', () => ({ camerasService: { list: vi.fn().mockResolvedValue({ data: [] }) } }))
+vi.mock('@/services/locationsService', () => ({ locationsService: { listAll: vi.fn().mockResolvedValue([]) } }))
+vi.mock('@/services/edgeNodesService', () => ({ edgeNodesService: { listAll: vi.fn().mockResolvedValue([]) } }))
+vi.mock('@/services/camerasService', () => ({ camerasService: { listAll: vi.fn().mockResolvedValue([]) } }))
 
 describe('CameraPairsPage', () => {
   it('renders pairs with and without support cameras', async () => {

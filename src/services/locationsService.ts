@@ -1,6 +1,7 @@
 import { getAppConfig } from '@/app/config'
 import type { LaravelPaginated, LaravelResource } from '@/types/api'
 import type { Location, LocationInput } from '@/types/admin'
+import { listAllPages } from './listAllPages'
 import { createApiClient } from './apiClient'
 
 const client = createApiClient({
@@ -9,8 +10,12 @@ const client = createApiClient({
 })
 
 export const locationsService = {
-  list(): Promise<LaravelPaginated<Location>> {
-    return client.get<LaravelPaginated<Location>>('/admin/locations')
+  list(page = 1): Promise<LaravelPaginated<Location>> {
+    return client.get<LaravelPaginated<Location>>(`/admin/locations?page=${page}`)
+  },
+
+  listAll(): Promise<Location[]> {
+    return listAllPages((page) => this.list(page))
   },
 
   async create(input: LocationInput): Promise<Location> {

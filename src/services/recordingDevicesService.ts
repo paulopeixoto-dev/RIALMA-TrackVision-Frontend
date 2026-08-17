@@ -1,6 +1,7 @@
 import { getAppConfig } from '@/app/config'
 import type { LaravelPaginated, LaravelResource } from '@/types/api'
 import type { RecordingDevice, RecordingDeviceInput } from '@/types/admin'
+import { listAllPages } from './listAllPages'
 import { createApiClient } from './apiClient'
 
 const client = createApiClient({
@@ -11,6 +12,10 @@ const client = createApiClient({
 export const recordingDevicesService = {
   list(page = 1): Promise<LaravelPaginated<RecordingDevice>> {
     return client.get<LaravelPaginated<RecordingDevice>>(`/admin/recording-devices?page=${page}`)
+  },
+
+  listAll(): Promise<RecordingDevice[]> {
+    return listAllPages((page) => this.list(page))
   },
 
   async create(input: RecordingDeviceInput): Promise<RecordingDevice> {

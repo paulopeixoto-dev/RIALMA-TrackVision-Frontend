@@ -189,6 +189,8 @@ export interface CameraRecordingSourceInput {
   is_active: boolean
 }
 
+export type UpdateCameraRecordingSourceInput = Omit<CameraRecordingSourceInput, 'camera_id'>
+
 export type TripStatus = 'open' | 'closed' | 'needs_review'
 export type TripEventDirection = 'outbound' | 'inbound' | 'unknown'
 export type LoadStatus = 'unknown' | 'loaded' | 'empty' | 'needs_review'

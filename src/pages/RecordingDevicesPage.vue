@@ -9,7 +9,7 @@ import { edgeNodesService } from '@/services/edgeNodesService'
 import { locationsService } from '@/services/locationsService'
 import { recordingDevicesService } from '@/services/recordingDevicesService'
 import type { FieldErrors } from '@/types/api'
-import type { Camera, CameraRecordingSource, CameraRecordingSourceInput, EdgeNode, Location, RecordingDevice, RecordingDeviceInput } from '@/types/admin'
+import type { Camera, CameraRecordingSource, CameraRecordingSourceInput, EdgeNode, Location, RecordingDevice, RecordingDeviceInput, UpdateCameraRecordingSourceInput } from '@/types/admin'
 
 const deviceColumns = [
   { key: 'name', label: 'Nome' },
@@ -85,7 +85,7 @@ const locationOptions = computed(() => [
 ])
 const filteredDevices = computed(() => selectedLocationId.value === null
   ? devices.value
-  : devices.value.filter((device) => device.location?.id === selectedLocationId.value))
+  : selectableRecordingDevices.value.filter((device) => device.location?.id === selectedLocationId.value))
 
 function deviceFrom(row: unknown): RecordingDevice {
   return row as RecordingDevice
@@ -93,6 +93,17 @@ function deviceFrom(row: unknown): RecordingDevice {
 
 function sourceFrom(row: unknown): CameraRecordingSource {
   return row as CameraRecordingSource
+}
+
+function sourceUpdateInput(input: CameraRecordingSourceInput): UpdateCameraRecordingSourceInput {
+  return {
+    recording_device_id: input.recording_device_id,
+    channel: input.channel,
+    stream: input.stream,
+    target_offset_seconds: input.target_offset_seconds,
+    search_window_seconds: input.search_window_seconds,
+    is_active: input.is_active,
+  }
 }
 
 function paginationValue(meta: Record<string, unknown> | undefined, key: string, fallback: number): number {
@@ -117,12 +128,13 @@ async function loadData(): Promise<void> {
   error.value = ''
 
   try {
-    const [devicesResponse, sourcesResponse, camerasResponse, locationsResponse, edgeNodesResponse] = await Promise.all([
+    const [devicesResponse, sourcesResponse, allDevices, allCameras, allLocations, allEdgeNodes] = await Promise.all([
       recordingDevicesService.list(devicesCurrentPage.value),
       cameraRecordingSourcesService.list(sourcesCurrentPage.value),
-      camerasService.list(),
-      locationsService.list(),
-      edgeNodesService.list(),
+      recordingDevicesService.listAll(),
+      camerasService.listAll(),
+      locationsService.listAll(),
+      edgeNodesService.listAll(),
     ])
     const devicesLastPageFromResponse = paginationValue(devicesResponse.meta, 'last_page', 1)
     const sourcesLastPageFromResponse = paginationValue(sourcesResponse.meta, 'last_page', 1)
@@ -138,9 +150,10 @@ async function loadData(): Promise<void> {
     } else {
       applySourcesResponse(sourcesResponse, sourcesCurrentPage.value)
     }
-    cameras.value = camerasResponse.data
-    locations.value = locationsResponse.data
-    edgeNodes.value = edgeNodesResponse.data
+    selectableRecordingDevices.value = allDevices
+    cameras.value = allCameras
+    locations.value = allLocations
+    edgeNodes.value = allEdgeNodes
   } catch {
     error.value = 'Nao foi possivel carregar gravadores e mapeamentos.'
   } finally {
@@ -213,15 +226,9 @@ function nextSourcesPage(): void {
 }
 
 async function loadSelectableRecordingDevices(): Promise<void> {
-  const firstPage = await recordingDevicesService.list(1)
-  const lastPage = paginationValue(firstPage.meta, 'last_page', 1)
-  const remainingPages = await Promise.all(
-    Array.from({ length: Math.max(lastPage - 1, 0) }, (_, index) => recordingDevicesService.list(index + 2)),
-  )
-  const devicesById = new Map<number, RecordingDevice>()
-
-  ;[firstPage, ...remainingPages].flatMap((page) => page.data).forEach((device) => devicesById.set(device.id, device))
-  selectableRecordingDevices.value = [...devicesById.values()]
+  if (selectableRecordingDevices.value.length === 0) {
+    selectableRecordingDevices.value = await recordingDevicesService.listAll()
+  }
 }
 
 function openCreateDevice(): void {
@@ -359,7 +366,7 @@ async function saveSource(): Promise<void> {
 
   try {
     if (editingSource.value) {
-      await cameraRecordingSourcesService.update(editingSource.value, sourceForm.value)
+      await cameraRecordingSourcesService.update(editingSource.value, sourceUpdateInput(sourceForm.value))
       success.value = 'Mapeamento atualizado.'
     } else {
       await cameraRecordingSourcesService.create(sourceForm.value)
@@ -509,7 +516,7 @@ onMounted(loadData)
           </template>
         </VaDataTable>
         <div
-          v-if="devicesLastPage > 1"
+          v-if="selectedLocationId === null && devicesLastPage > 1"
           class="pagination-row"
         >
           <VaButton
@@ -568,6 +575,7 @@ onMounted(loadData)
               <VaButton
                 class="base-button"
                 color="secondary"
+                data-test="edit-recording-source"
                 type="button"
                 @click="openEditSource(sourceFrom(rowData))"
               >
@@ -668,6 +676,7 @@ onMounted(loadData)
         <CameraRecordingSourceForm
           v-model="sourceForm"
           :cameras="cameras"
+          :camera-immutable="Boolean(editingSource)"
           :errors="sourceErrors"
           :recording-devices="selectableRecordingDevices"
           :submitting="submittingSource"

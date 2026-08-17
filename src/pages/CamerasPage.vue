@@ -70,12 +70,12 @@ async function loadData(): Promise<void> {
   try {
     const [camerasResponse, locationsResponse, edgeNodesResponse] = await Promise.all([
       camerasService.list(),
-      locationsService.list(),
-      edgeNodesService.list(),
+      locationsService.listAll(),
+      edgeNodesService.listAll(),
     ])
     cameras.value = camerasResponse.data
-    locations.value = locationsResponse.data
-    edgeNodes.value = edgeNodesResponse.data
+    locations.value = locationsResponse
+    edgeNodes.value = edgeNodesResponse
   } catch {
     error.value = 'Nao foi possivel carregar cameras.'
   } finally {
